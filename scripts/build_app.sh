@@ -27,19 +27,19 @@ echo "🧹 Cleaning previous builds..."
 rm -rf build dist
 
 # Create a simple icon if it doesn't exist
-if [ ! -f "llamita_icon.icns" ]; then
+if [ ! -f "assets/icons/llamita_icon.icns" ]; then
     echo "🎨 Creating default icon..."
-    python3 create_icon.py
+    python3 assets/icons/create_icon.py
     
     # Convert to ICNS (macOS icon format)
     if command -v iconutil &> /dev/null; then
         echo "🔄 Converting to ICNS format..."
-        iconutil -c icns llamita.iconset
-        rm -rf llamita.iconset
+        iconutil -c icns assets/icons/llamita.iconset
+        rm -rf assets/icons/llamita.iconset
         echo "✅ Icon converted to ICNS format"
     else
         echo "⚠️ Could not convert to ICNS, using PNG"
-        mv llamita_icon.png llamita_icon.icns
+        mv assets/icons/llamita_icon.png assets/icons/llamita_icon.icns
     fi
 fi
 
