@@ -145,7 +145,12 @@ Edit `config.py` to change:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project uses **dual licensing**:
+
+- **Personal/Educational Use**: Free (MIT License) - see [LICENSE](LICENSE)
+- **Commercial Use**: Paid license required - see [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md)
+
+**For commercial use**, including integration into commercial products, enterprise deployments, or commercial distribution, a paid license is required. Please contact for pricing and terms.
 
 ## 🙏 Acknowledgments
 
