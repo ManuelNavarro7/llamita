@@ -1,0 +1,5 @@
+# Voice Assistant Dependencies
+SpeechRecognition>=3.14.0
+PyAudio>=0.2.14
+py2app>=0.28.8
+requests>=2.32.0
