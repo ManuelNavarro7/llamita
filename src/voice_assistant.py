@@ -62,6 +62,14 @@ class VoiceAssistant:
         
         # Set custom icon if available
         try:
+            # First, try to clear any existing icon completely
+            try:
+                self.root.iconbitmap(default='')
+                self.root.iconphoto(True, tk.PhotoImage())  # Set empty photo
+                print("✅ Default icon cleared")
+            except:
+                pass
+            
             # Try multiple possible icon paths
             icon_paths = [
                 "llamita_icon.png",  # Current directory
@@ -87,10 +95,12 @@ class VoiceAssistant:
                         break
             
             if not icon_loaded:
-                # Try to clear the default Python icon
+                # Try additional methods to clear the Python icon
                 try:
-                    self.root.iconbitmap(default='')
-                    print("✅ Default icon cleared")
+                    # Set a minimal 1x1 transparent icon
+                    empty_icon = tk.PhotoImage(width=1, height=1)
+                    self.root.iconphoto(True, empty_icon)
+                    print("✅ Set minimal transparent icon")
                 except:
                     pass
                 print("⚠️ Could not find custom icon")
@@ -99,6 +109,8 @@ class VoiceAssistant:
             # Try to clear the default Python icon as fallback
             try:
                 self.root.iconbitmap(default='')
+                empty_icon = tk.PhotoImage(width=1, height=1)
+                self.root.iconphoto(True, empty_icon)
                 print("✅ Default icon cleared (fallback)")
             except:
                 pass
