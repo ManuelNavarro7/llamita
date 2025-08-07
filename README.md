@@ -5,21 +5,58 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 ## 🚀 Quick Start
 
 ```bash
-# Clone and build
+# Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
 cd llamita
-pip install -r requirements.txt
-python3 setup.py py2app
+
+# Install dependencies
+pip3 install -r requirements.txt
+
+# Make scripts executable
+chmod +x scripts/*.sh
+
+# Start Ollama (in a separate terminal)
+ollama serve
+
+# Download a model (in another terminal)
+ollama pull llama3:8b
 
 # Run the app
-open dist/Llamita.app
+./scripts/run_simple.sh
 ```
+
+## 🔧 Alternative Installation Methods
+
+### Method 1: Simple Run (Recommended)
+```bash
+./scripts/run_simple.sh
+```
+
+### Method 2: Virtual Environment Run
+```bash
+./scripts/run_voice_assistant.sh
+```
+
+### Method 3: Direct Run
+```bash
+PYTHONPATH=src python3 src/voice_assistant.py
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues:
+- **"ModuleNotFoundError: No module named 'config'"** → Use `PYTHONPATH=src python3 src/voice_assistant.py`
+- **"Ollama is not running"** → Start Ollama with `ollama serve`
+- **Permission errors** → Run `chmod +x scripts/*.sh`
+- **Missing dependencies** → Run `pip3 install -r requirements.txt`
 
 ## 📁 Project Structure
 
 ```
 llamita/
 ├── src/                    # Source code
+│   ├── voice_assistant.py  # Main application
+│   └── config.py          # Configuration
 ├── scripts/                # Build and utility scripts  
 ├── docs/                   # Documentation
 ├── assets/                 # Assets and resources
@@ -29,6 +66,7 @@ llamita/
 ## 📖 Documentation
 
 - **[Full Documentation](docs/README.md)** - Complete setup and usage guide
+- **[Setup Instructions](docs/SETUP_INSTRUCTIONS.md)** - Detailed installation guide
 - **[License Information](docs/LICENSE)** - Licensing terms
 - **[Commercial License](docs/COMMERCIAL_LICENSE.md)** - Commercial use terms
 

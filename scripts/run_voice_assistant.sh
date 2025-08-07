@@ -38,7 +38,7 @@ if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
     exit 1
 fi
 
-# Run the voice assistant
+# Run the voice assistant from the src directory
 echo "🚀 Starting Llamita..."
 echo ""
 echo "💡 Tips:"
@@ -46,4 +46,4 @@ echo "   - Click 'Start Listening' to begin"
 echo "   - Click 'Stop Speaking' to interrupt AI speech"
 echo "   - Close the window to exit"
 echo ""
-python3 voice_assistant.py
+cd src && python3 voice_assistant.py
