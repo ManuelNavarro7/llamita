@@ -4,6 +4,13 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 
 ## 🚀 Quick Start
 
+### Option 1: One-Command Installation (Recommended)
+```bash
+# Clone and install everything with one command
+curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_everything.sh | bash
+```
+
+### Option 2: Manual Installation
 ```bash
 # Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
@@ -25,7 +32,7 @@ ollama pull llama3:8b
 ./scripts/run_simple.sh
 ```
 
-## 🔧 Alternative Installation Methods
+## 🔧 Alternative Run Methods
 
 ### Method 1: Simple Run (Recommended)
 ```bash
@@ -67,6 +74,7 @@ llamita/
 
 - **[Full Documentation](docs/README.md)** - Complete setup and usage guide
 - **[Setup Instructions](docs/SETUP_INSTRUCTIONS.md)** - Detailed installation guide
+- **[Installation Guide](docs/INSTALLATION_GUIDE.md)** - Comprehensive installation guide
 - **[License Information](docs/LICENSE)** - Licensing terms
 - **[Commercial License](docs/COMMERCIAL_LICENSE.md)** - Commercial use terms
 
@@ -76,6 +84,7 @@ llamita/
 - **💬 Conversation Memory** - Maintains context across messages
 - **🎨 Beautiful UI** - Clean, modern interface with custom llama icon
 - **📱 Native macOS App** - Properly packaged as a `.app` bundle
+- **🔧 Easy Installation** - One-command installation script
 
 ## 📝 License
 
