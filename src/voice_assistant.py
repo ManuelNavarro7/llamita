@@ -70,9 +70,11 @@ class VoiceAssistant:
             except:
                 pass
             
-            # Try multiple possible icon paths
+            # Try multiple possible icon paths (prioritize existing assets)
             icon_paths = [
-                "llamita_icon.png",  # Current directory
+                "assets/icons/llamita_icon.png",  # Existing icon in assets
+                "assets/icons/llamita_icon.ico",  # Existing ICO icon
+                "llamita_icon.png",  # Root directory (if exists)
                 os.path.join(os.path.dirname(__file__), "llamita_icon.png"),  # Script directory
                 os.path.join(os.path.dirname(sys.executable), "..", "Resources", "llamita_icon.png"),  # App bundle
                 os.path.join(os.path.dirname(sys.executable), "..", "Resources", "llamita_icon.icns"),  # App bundle icns
@@ -87,10 +89,22 @@ class VoiceAssistant:
                         print("✅ Custom icon available (handled by app bundle)")
                         icon_loaded = True
                         break
+                    elif icon_path.endswith('.ico'):
+                        # For .ico files, try to convert or use as is
+                        try:
+                            icon = tk.PhotoImage(file=icon_path)
+                            self.root.iconphoto(True, icon)
+                            print("✅ Custom ICO icon loaded")
+                            icon_loaded = True
+                            break
+                        except:
+                            print(f"⚠️ Could not load ICO icon: {icon_path}")
+                            continue
                     else:
+                        # PNG files
                         icon = tk.PhotoImage(file=icon_path)
                         self.root.iconphoto(True, icon)
-                        print("✅ Custom icon loaded")
+                        print(f"✅ Custom icon loaded: {icon_path}")
                         icon_loaded = True
                         break
             

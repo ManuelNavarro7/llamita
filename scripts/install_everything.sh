@@ -116,17 +116,6 @@ print_info "Step 6: Making scripts executable..."
 chmod +x scripts/*.sh 2>/dev/null || true
 print_status "Scripts made executable"
 
-# Step 6.5: Create custom icon
-echo ""
-print_info "Step 6.5: Creating custom icon..."
-if python3 -c "import PIL" 2>/dev/null; then
-    python3 scripts/create_icon.py
-    print_status "Custom icon created"
-else
-    print_warning "PIL not available, skipping icon creation"
-    print_info "Install with: pip3 install Pillow"
-fi
-
 # Step 7: Start Ollama and download model
 echo ""
 print_info "Step 7: Starting Ollama and downloading model..."
