@@ -47,12 +47,17 @@ chmod +x install_llamita.sh
 ./scripts/run_simple.sh
 ```
 
-### Method 2: Virtual Environment Run
+### Method 2: Clean Run (No Warnings)
+```bash
+./scripts/run_clean.sh
+```
+
+### Method 3: Virtual Environment Run
 ```bash
 ./scripts/run_voice_assistant.sh
 ```
 
-### Method 3: Direct Run
+### Method 4: Direct Run
 ```bash
 PYTHONPATH=src python3 src/voice_assistant.py
 ```

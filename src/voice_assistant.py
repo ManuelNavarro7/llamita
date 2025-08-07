@@ -87,9 +87,21 @@ class VoiceAssistant:
                         break
             
             if not icon_loaded:
+                # Try to clear the default Python icon
+                try:
+                    self.root.iconbitmap(default='')
+                    print("✅ Default icon cleared")
+                except:
+                    pass
                 print("⚠️ Could not find custom icon")
         except Exception as e:
             print(f"⚠️ Could not load custom icon: {e}")
+            # Try to clear the default Python icon as fallback
+            try:
+                self.root.iconbitmap(default='')
+                print("✅ Default icon cleared (fallback)")
+            except:
+                pass
         
         # Configure button style for rounded corners
         self.setup_button_style()
@@ -463,11 +475,29 @@ class VoiceAssistant:
 def main():
     """Main function"""
     try:
+        # Suppress macOS warnings
+        import os
+        os.environ['PYTHONUNBUFFERED'] = '1'
+        os.environ['OBJC_DISABLE_INITIALIZE_FORK_SAFETY'] = 'YES'
+        
+        # Suppress specific macOS warnings
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning)
+        
         print("🚀 Starting Llamita Voice Assistant...")
         print("📱 Creating GUI window...")
         
         root = tk.Tk()
         print("✅ GUI window created")
+        
+        # Set a proper window icon to avoid the Python rocket
+        try:
+            # Try to set a custom icon
+            root.iconbitmap(default='')  # Clear default icon
+            root.title("🦙 Llamita - Voice Assistant")
+        except:
+            # If icon setting fails, just set the title
+            root.title("🦙 Llamita - Voice Assistant")
         
         # Ensure window is visible and focused
         root.lift()
