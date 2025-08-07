@@ -25,12 +25,25 @@ This document explains the installation issues that were found and how they were
 
 **Fix:** Updated all documentation to reflect the correct file structure and installation process.
 
+### 4. **Poor Ollama Error Handling**
+**Issue:** When Ollama was not running, the application would fail silently or provide unclear error messages.
+
+**Error:** Users didn't know why the application wasn't working when Ollama was down.
+
+**Fix:** Improved error handling with:
+- Clear error messages when Ollama is not running
+- Automatic Ollama status checking before sending messages
+- Detailed guidance on how to start Ollama
+- "Check Ollama Status" button in the UI
+- Welcome message with Ollama status on startup
+
 ## ✅ Solutions Implemented
 
 ### 1. **Fixed Run Scripts**
 - **`scripts/run_simple.sh`**: Simple run script that sets `PYTHONPATH=src`
 - **`scripts/run_voice_assistant.sh`**: Virtual environment script that changes to `src/` directory
 - **`scripts/verify_installation.sh`**: Verification script to check if everything is working
+- **`scripts/test_ollama_handling.py`**: Test script to demonstrate Ollama error handling
 
 ### 2. **Updated Documentation**
 - **`README.md`**: Updated with correct installation steps
@@ -38,7 +51,14 @@ This document explains the installation issues that were found and how they were
 - **`docs/INSTALLATION_GUIDE.md`**: Comprehensive installation guide
 - **`docs/INSTALLATION_FIXES.md`**: This document explaining the fixes
 
-### 3. **Multiple Run Methods**
+### 3. **Improved Ollama Handling**
+- **Automatic status checking**: Before sending messages, the app checks if Ollama is running
+- **Clear error messages**: Users get specific guidance on how to start Ollama
+- **Status button**: "Check Ollama Status" button in the UI
+- **Welcome message**: App shows Ollama status and guidance on startup
+- **Detailed error handling**: Different error types (connection, timeout, etc.) are handled properly
+
+### 4. **Multiple Run Methods**
 Users can now run Llamita using any of these methods:
 
 ```bash
@@ -61,6 +81,8 @@ All fixes have been tested and verified:
 3. **✅ Ollama integration works**
 4. **✅ GUI appears properly**
 5. **✅ Dependencies are resolved**
+6. **✅ Ollama error handling works properly**
+7. **✅ Clear user guidance when Ollama is down**
 
 ## 📋 Installation Checklist
 
@@ -112,6 +134,18 @@ This script checks:
 - ✅ Ollama installation and status
 - ✅ Application import test
 
+## 🧪 Ollama Error Handling Test
+
+Users can test the Ollama error handling by running:
+```bash
+python3 scripts/test_ollama_handling.py
+```
+
+This test demonstrates:
+- ✅ Detection when Ollama is not running
+- ✅ Proper handling when Ollama is running
+- ✅ Clear error messages and guidance
+
 ## 🎯 Result
 
 The installation process now works reliably for users who clone the repository and follow the steps. The main issues were:
@@ -120,5 +154,6 @@ The installation process now works reliably for users who clone the repository a
 2. **Python import issues** - Fixed by setting PYTHONPATH
 3. **Outdated documentation** - Fixed by updating all docs
 4. **Missing verification** - Fixed by adding verification script
+5. **Poor Ollama error handling** - Fixed by improving error messages and status checking
 
 All issues have been resolved and the application now installs and runs correctly! 🦙✨
