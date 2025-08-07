@@ -85,27 +85,40 @@ else
     print_status "Ollama found: $ollama_version"
 fi
 
-# Step 4: Install Python dependencies
+# Step 4: Clone repository if not already in it
 echo ""
-print_info "Step 4: Installing Python dependencies..."
+print_info "Step 4: Setting up repository..."
+if [ ! -f "src/voice_assistant.py" ] && [ ! -f "requirements.txt" ]; then
+    print_info "Cloning Llamita repository..."
+    git clone https://github.com/ManuelNavarro7/llamita.git
+    cd llamita
+    print_status "Repository cloned successfully"
+else
+    print_status "Repository already present"
+fi
+
+# Step 5: Install Python dependencies
+echo ""
+print_info "Step 5: Installing Python dependencies..."
 if [ -f "requirements.txt" ]; then
-    pip3 install -r requirements.txt
+    # Install only the packages that can be installed via pip
+    pip3 install requests SpeechRecognition PyAudio py2app
     print_status "Python dependencies installed"
 else
     print_warning "requirements.txt not found, installing basic dependencies..."
-    pip3 install requests tkinter
+    pip3 install requests
     print_status "Basic Python dependencies installed"
 fi
 
-# Step 5: Make scripts executable
+# Step 6: Make scripts executable
 echo ""
-print_info "Step 5: Making scripts executable..."
+print_info "Step 6: Making scripts executable..."
 chmod +x scripts/*.sh 2>/dev/null || true
 print_status "Scripts made executable"
 
-# Step 6: Start Ollama and download model
+# Step 7: Start Ollama and download model
 echo ""
-print_info "Step 6: Starting Ollama and downloading model..."
+print_info "Step 7: Starting Ollama and downloading model..."
 
 # Check if Ollama is already running
 if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
@@ -153,9 +166,9 @@ else
     print_status "Model downloaded successfully"
 fi
 
-# Step 7: Test the installation
+# Step 8: Test the installation
 echo ""
-print_info "Step 7: Testing installation..."
+print_info "Step 8: Testing installation..."
 if python3 -c "import tkinter; import requests; print('✅ Dependencies OK')" 2>/dev/null; then
     print_status "Python dependencies test passed"
 else
@@ -170,9 +183,9 @@ else
     exit 1
 fi
 
-# Step 8: Final verification
+# Step 9: Final verification
 echo ""
-print_info "Step 8: Running final verification..."
+print_info "Step 9: Running final verification..."
 if [ -f "scripts/verify_installation.sh" ]; then
     ./scripts/verify_installation.sh
 else
