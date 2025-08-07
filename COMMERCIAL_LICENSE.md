@@ -25,7 +25,7 @@ This license grants permission to use Llamita in commercial applications.
 5. **No redistribution** of source code
 
 ### **Contact for Commercial License:**
-- **Email**: manuelnavarro7@gmail.com
+- **Email**: manuel.navarro.work@gmail.com
 - **GitHub**: https://github.com/ManuelNavarro7/llamita
 - **Payment**: PayPal, Venmo, or bank transfer
 
