@@ -4,13 +4,7 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 
 ## 🚀 Quick Start
 
-### Option 1: One-Command Installation (Recommended)
-```bash
-# Clone and install everything with one command
-curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_everything.sh | bash
-```
-
-### Option 2: Manual Installation
+### Option 1: Manual Installation (Recommended)
 ```bash
 # Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
@@ -30,6 +24,20 @@ ollama pull llama3:8b
 
 # Run the app
 ./scripts/run_simple.sh
+```
+
+### Option 2: One-Command Installation (if GitHub allows)
+```bash
+# Try this first (may be rate limited)
+curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_everything.sh | bash
+```
+
+### Option 3: Local Installation Script
+```bash
+# Download and run the local installer
+curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_local.sh > install_llamita.sh
+chmod +x install_llamita.sh
+./install_llamita.sh
 ```
 
 ## 🔧 Alternative Run Methods
@@ -56,6 +64,7 @@ PYTHONPATH=src python3 src/voice_assistant.py
 - **"Ollama is not running"** → Start Ollama with `ollama serve`
 - **Permission errors** → Run `chmod +x scripts/*.sh`
 - **Missing dependencies** → Run `pip3 install -r requirements.txt`
+- **GitHub rate limiting (429 error)** → Use manual installation instead
 
 ## 📁 Project Structure
 
@@ -75,6 +84,7 @@ llamita/
 - **[Full Documentation](docs/README.md)** - Complete setup and usage guide
 - **[Setup Instructions](docs/SETUP_INSTRUCTIONS.md)** - Detailed installation guide
 - **[Installation Guide](docs/INSTALLATION_GUIDE.md)** - Comprehensive installation guide
+- **[Quick Install Guide](docs/QUICK_INSTALL.md)** - Quick installation methods
 - **[License Information](docs/LICENSE)** - Licensing terms
 - **[Commercial License](docs/COMMERCIAL_LICENSE.md)** - Commercial use terms
 
@@ -84,7 +94,7 @@ llamita/
 - **💬 Conversation Memory** - Maintains context across messages
 - **🎨 Beautiful UI** - Clean, modern interface with custom llama icon
 - **📱 Native macOS App** - Properly packaged as a `.app` bundle
-- **🔧 Easy Installation** - One-command installation script
+- **🔧 Easy Installation** - Multiple installation methods available
 
 ## 📝 License
 
