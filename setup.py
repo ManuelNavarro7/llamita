@@ -14,7 +14,7 @@ DATA_FILES = [
 
 OPTIONS = {
     'argv_emulation': False,
-    'iconfile': './assets/icons/llamita_icon.png',
+    'iconfile': './assets/icons/llamita_icon.icns',
     'plist': {
         'CFBundleName': 'Llamita',
         'CFBundleDisplayName': '🦙 Llamita',
@@ -22,6 +22,7 @@ OPTIONS = {
         'CFBundleIdentifier': 'com.llamita.assistant',
         'CFBundleVersion': '1.0.0',
         'CFBundleShortVersionString': '1.0.0',
+        'CFBundleIconFile': 'llamita_icon.icns',
         'NSHumanReadableCopyright': '© 2024 Llamita',
         'NSHighResolutionCapable': True,
         'LSMinimumSystemVersion': '10.13.0',
