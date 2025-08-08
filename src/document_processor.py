@@ -12,6 +12,7 @@ from typing import List, Dict, Optional, Tuple
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import threading
+import tkinter.ttk as ttk
 
 # Document processing libraries
 try:
@@ -568,7 +569,7 @@ class DocumentUploadDialog:
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Documents")
-        self.dialog.geometry("700x800")  # Much larger size to show all content
+        self.dialog.geometry("700x600")  # Reasonable initial size
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -579,16 +580,59 @@ class DocumentUploadDialog:
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
             parent.winfo_rootx() + parent.winfo_width()//2 - 350,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 400
+            parent.winfo_rooty() + parent.winfo_height()//2 - 300
         ))
         
-        # Setup UI immediately for faster response
+        # Create scrollable frame
+        self.create_scrollable_frame()
+        
+        # Setup UI
         self.setup_ui()
+        
+        # Focus on dialog
+        self.dialog.focus_set()
+        
+        # Bind escape key to close
+        self.dialog.bind('<Escape>', lambda e: self.dialog.destroy())
+        
+        # Wait for dialog to close
+        self.dialog.wait_window()
+    
+    def create_scrollable_frame(self):
+        """Create a scrollable frame for the dialog content"""
+        # Create main container
+        self.main_container = tk.Frame(self.dialog)
+        self.main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Create canvas with scrollbar
+        self.canvas = tk.Canvas(self.main_container, bg='white')
+        self.scrollbar = ttk.Scrollbar(self.main_container, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = tk.Frame(self.canvas)
+        
+        # Configure canvas
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+        
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        
+        # Pack canvas and scrollbar
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+        
+        # Bind mouse wheel to scroll
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+    
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     
     def setup_ui(self):
         """Setup the upload dialog UI"""
         # Main frame
-        main_frame = tk.Frame(self.dialog)
+        main_frame = tk.Frame(self.scrollable_frame) # Use scrollable_frame
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
         # Title
