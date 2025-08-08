@@ -162,10 +162,192 @@ class VoiceAssistant:
             except:
                 pass
         
-        # Configure button style for rounded corners
-        self.setup_button_style()
+        # Show loading screen first
+        self.show_loading_screen()
+        
+        # Initialize basic components
+        self.initialize_basic_components()
         
         print("✅ Window configured")
+    
+    def show_loading_screen(self):
+        """Show loading screen with Llamita icon while initializing"""
+        # Create loading window
+        self.loading_window = tk.Toplevel(self.root)
+        self.loading_window.title("🦙 Llamita - Loading...")
+        self.loading_window.geometry("400x300")
+        self.loading_window.configure(bg=config.COLORS['background'])
+        self.loading_window.resizable(False, False)
+        
+        # Center the loading window
+        self.loading_window.transient(self.root)
+        self.loading_window.grab_set()
+        
+        # Try to load the Llamita icon
+        icon_photo = None
+        try:
+            # Find icon path
+            def find_icon_path():
+                current_dir = os.path.dirname(__file__)
+                while current_dir != os.path.dirname(current_dir):
+                    icon_path = os.path.join(current_dir, "assets", "icons", "llamita_icon.png")
+                    if os.path.exists(icon_path):
+                        return icon_path
+                    current_dir = os.path.dirname(current_dir)
+                return None
+            
+            icon_path = find_icon_path()
+            if icon_path:
+                # Resize icon for loading screen (64x64)
+                from PIL import Image, ImageTk
+                img = Image.open(icon_path)
+                img = img.resize((64, 64), Image.Resampling.LANCZOS)
+                icon_photo = ImageTk.PhotoImage(img)
+                print("✅ Loading screen icon loaded")
+            else:
+                print("⚠️ Could not find icon for loading screen")
+        except Exception as e:
+            print(f"⚠️ Error loading icon: {e}")
+        
+        # Create loading screen content
+        main_frame = tk.Frame(self.loading_window, bg=config.COLORS['background'])
+        main_frame.pack(expand=True, fill=tk.BOTH, padx=40, pady=40)
+        
+        # Icon label
+        if icon_photo:
+            icon_label = tk.Label(main_frame, image=icon_photo, bg=config.COLORS['background'])
+            icon_label.image = icon_photo  # Keep a reference
+            icon_label.pack(pady=(0, 20))
+        else:
+            # Fallback to text icon
+            icon_label = tk.Label(main_frame, text="🦙", font=("Helvetica", 48), 
+                                fg=config.COLORS['text'], bg=config.COLORS['background'])
+            icon_label.pack(pady=(0, 20))
+        
+        # Title
+        title_label = tk.Label(main_frame, text="Llamita", font=("Helvetica", 24, "bold"),
+                              fg=config.COLORS['text'], bg=config.COLORS['background'])
+        title_label.pack(pady=(0, 10))
+        
+        # Subtitle
+        subtitle_label = tk.Label(main_frame, text="AI Assistant", font=("Helvetica", 14),
+                                fg=config.COLORS['text'], bg=config.COLORS['background'])
+        subtitle_label.pack(pady=(0, 30))
+        
+        # Loading message
+        self.loading_label = tk.Label(main_frame, text="Initializing...", font=("Helvetica", 12),
+                                     fg=config.COLORS['text'], bg=config.COLORS['background'])
+        self.loading_label.pack(pady=(0, 20))
+        
+        # Progress bar
+        self.progress_var = tk.StringVar(value="⏳")
+        progress_label = tk.Label(main_frame, textvariable=self.progress_var, font=("Helvetica", 16),
+                                fg=config.COLORS['button_bg'], bg=config.COLORS['background'])
+        progress_label.pack()
+        
+        # Start initialization in background
+        self.root.after(100, self.initialize_with_loading)
+    
+    def initialize_with_loading(self):
+        """Initialize components with loading progress updates"""
+        try:
+            # Step 1: Initialize basic components
+            self.update_loading_status("Setting up components...", "⏳")
+            self.root.after(500, self.step_2_initialize_processors)
+        except Exception as e:
+            print(f"❌ Error in initialization: {e}")
+            self.hide_loading_screen()
+    
+    def step_2_initialize_processors(self):
+        """Step 2: Initialize document processors"""
+        try:
+            # Initialize processors in background
+            self.document_processor = None
+            self.google_processor = None
+            self._processors_ready = False
+            
+            def init_processors():
+                try:
+                    if DOCUMENT_PROCESSING_AVAILABLE:
+                        self.document_processor = DocumentProcessor()
+                        print("✅ Document processing initialized")
+                    
+                    if GOOGLE_DOCS_AVAILABLE:
+                        self.google_processor = GoogleDocsProcessor()
+                        print("✅ Google Docs integration initialized")
+                    
+                    self._processors_ready = True
+                except Exception as e:
+                    print(f"⚠️ Error initializing processors: {e}")
+            
+            # Start initialization in background
+            import threading
+            thread = threading.Thread(target=init_processors, daemon=True)
+            thread.start()
+            
+            self.update_loading_status("Initializing AI components...", "⏳")
+            self.root.after(800, self.step_3_setup_ui)
+        except Exception as e:
+            print(f"❌ Error in processor initialization: {e}")
+            self.hide_loading_screen()
+    
+    def step_3_setup_ui(self):
+        """Step 3: Setup UI components"""
+        try:
+            self.update_loading_status("Setting up interface...", "⏳")
+            self.setup_ui()
+            self.update_loading_status("Cleaning up processes...", "⏳")
+            self.root.after(500, self.step_4_finalize)
+        except Exception as e:
+            print(f"❌ Error in UI setup: {e}")
+            self.hide_loading_screen()
+    
+    def step_4_finalize(self):
+        """Step 4: Finalize initialization"""
+        try:
+            self.cleanup_previous_processes()
+            self.update_loading_status("Ready!", "✅")
+            self.root.after(500, self.hide_loading_screen)
+        except Exception as e:
+            print(f"❌ Error in finalization: {e}")
+            self.hide_loading_screen()
+    
+    def update_loading_status(self, message, icon):
+        """Update loading screen status"""
+        try:
+            self.loading_label.config(text=message)
+            self.progress_var.set(icon)
+        except Exception as e:
+            print(f"⚠️ Error updating loading status: {e}")
+    
+    def hide_loading_screen(self):
+        """Hide loading screen and show main interface"""
+        try:
+            if hasattr(self, 'loading_window') and self.loading_window:
+                self.loading_window.destroy()
+                self.loading_window = None
+            print("✅ Loading screen hidden, main interface ready")
+        except Exception as e:
+            print(f"⚠️ Error hiding loading screen: {e}")
+    
+    def initialize_basic_components(self):
+        """Initialize basic components without UI setup"""
+        # Set up button style
+        self.setup_button_style()
+        
+        # Initialize basic variables
+        self.recognizer = None
+        self.microphone = None
+        self.voice_input_enabled = False
+        self.is_listening = False
+        self.ollama_url = config.OLLAMA_URL
+        
+        # Conversation context
+        self.conversation_history = []
+        self.max_history_length = 10
+        
+        # Voice input state (text responses only)
+        self.voice_input_enabled = False
     
     def setup_button_style(self):
         """Setup custom button styling for rounded corners"""
@@ -185,55 +367,6 @@ class VoiceAssistant:
                  background=[('active', config.COLORS['button_active']),
                            ('disabled', config.COLORS['button_disabled'])],
                  foreground=[('disabled', config.COLORS['button_disabled'])])
-        
-        # Initialize components (voice disabled)
-        self.recognizer = None
-        self.microphone = None
-        self.voice_input_enabled = False
-        
-        self.is_listening = False
-        self.ollama_url = config.OLLAMA_URL
-        
-        # Conversation context
-        self.conversation_history = []
-        self.max_history_length = 10  # Keep last 10 exchanges for context
-        
-        # Voice input state (text responses only)
-        self.voice_input_enabled = False
-        
-        # Document processing (ultra-fast lazy initialization)
-        self.document_processor = None
-        self.google_processor = None
-        self._processors_ready = False
-        
-        # Initialize processors in background with priority
-        def init_processors():
-            try:
-                if DOCUMENT_PROCESSING_AVAILABLE:
-                    self.document_processor = DocumentProcessor()
-                    print("✅ Document processing initialized")
-                
-                if GOOGLE_DOCS_AVAILABLE:
-                    self.google_processor = GoogleDocsProcessor()
-                    print("✅ Google Docs integration initialized")
-                
-                self._processors_ready = True
-            except Exception as e:
-                print(f"⚠️ Error initializing processors: {e}")
-        
-        # Start initialization in background with high priority
-        import threading
-        thread = threading.Thread(target=init_processors, daemon=True)
-        thread.start()
-        
-        print("🖥️ Setting up UI...")
-        self.setup_ui()
-        print("✅ UI setup complete")
-        
-        print("🧹 Cleaning up previous processes...")
-        self.cleanup_previous_processes()
-        print("✅ Process cleanup complete")
-        print("🎉 Voice Assistant ready!")
     
     def setup_ui(self):
         """Setup the user interface"""
