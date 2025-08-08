@@ -29,11 +29,14 @@ OPTIONS = {
         'NSAppleScriptEnabled': False,
         'LSBackgroundOnly': False,
         'LSApplicationCategoryType': 'public.app-category.productivity',
+        'NSPrincipalClass': 'NSApplication',
     },
-    'packages': ['tkinter', 'requests'],
-    'includes': ['config'],
+    'packages': ['tkinter', 'requests', 'PIL', 'PIL._tkinter_finder'],
+    'includes': ['config', 'document_processor', 'google_docs_processor'],
     'excludes': ['PyAudio', 'speech_recognition'],
-    'optimize': 2,
+    'optimize': 1,  # Reduced optimization for better compatibility
+    'semi_standalone': False,
+    'site_packages': True,
 }
 
 setup(

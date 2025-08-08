@@ -175,25 +175,41 @@ class VoiceAssistant:
         # Initialize basic components
         self.initialize_basic_components()
         
+        # If loading screen failed, initialize directly
+        if not hasattr(self, 'loading_window') or self.loading_window is None:
+            print("⚠️ Loading screen not available, initializing directly...")
+            self.initialize_directly()
+        
         print("✅ Window configured")
     
     def show_loading_screen(self):
         """Show loading screen with Llamita icon while initializing"""
         print("🔄 Creating loading screen...")
         
-        # Create loading window
-        self.loading_window = tk.Toplevel(self.root)
-        self.loading_window.title("🦙 Llamita - Loading...")
-        self.loading_window.geometry("400x300")
-        self.loading_window.configure(bg=config.COLORS['background'])
-        self.loading_window.resizable(False, False)
-        
-        # Make sure the loading window is visible
-        self.loading_window.lift()
-        self.loading_window.attributes('-topmost', True)
-        self.loading_window.focus_force()
-        
-        print("✅ Loading screen window created")
+        try:
+            # Create loading window
+            self.loading_window = tk.Toplevel(self.root)
+            self.loading_window.title("🦙 Llamita - Loading...")
+            self.loading_window.geometry("400x300")
+            self.loading_window.configure(bg=config.COLORS['background'])
+            self.loading_window.resizable(False, False)
+            
+            # Make sure the loading window is visible (especially important for app bundle)
+            self.loading_window.lift()
+            self.loading_window.attributes('-topmost', True)
+            self.loading_window.focus_force()
+            
+            # Force update to ensure window appears
+            self.loading_window.update_idletasks()
+            self.loading_window.update()
+            
+            print("✅ Loading screen window created")
+            
+        except Exception as e:
+            print(f"⚠️ Error creating loading screen: {e}")
+            # Continue without loading screen
+            self.loading_window = None
+            return
         
         # Center the loading window
         self.loading_window.transient(self.root)
@@ -359,12 +375,16 @@ class VoiceAssistant:
             if hasattr(self, 'loading_window') and self.loading_window:
                 self.loading_window.destroy()
                 self.loading_window = None
-            print("✅ Loading screen hidden, main interface ready")
+                print("✅ Loading screen hidden, main interface ready")
+            else:
+                print("✅ No loading screen to hide, main interface ready")
             
             # Add welcome messages after UI is ready
             self.root.after(100, self.add_welcome_messages)
         except Exception as e:
             print(f"⚠️ Error hiding loading screen: {e}")
+            # Still add welcome messages even if hiding failed
+            self.root.after(100, self.add_welcome_messages)
     
     def add_welcome_messages(self):
         """Add welcome messages after UI is ready"""
@@ -397,6 +417,48 @@ class VoiceAssistant:
         
         # Voice input state (text responses only)
         self.voice_input_enabled = False
+    
+    def initialize_directly(self):
+        """Initialize components directly without loading screen"""
+        try:
+            print("🔄 Initializing components directly...")
+            
+            # Initialize processors
+            self.document_processor = None
+            self.google_processor = None
+            self._processors_ready = False
+            
+            def init_processors():
+                try:
+                    if DOCUMENT_PROCESSING_AVAILABLE:
+                        self.document_processor = DocumentProcessor()
+                        print("✅ Document processing initialized")
+                    
+                    if GOOGLE_DOCS_AVAILABLE:
+                        self.google_processor = GoogleDocsProcessor()
+                        print("✅ Google Docs integration initialized")
+                    
+                    self._processors_ready = True
+                except Exception as e:
+                    print(f"⚠️ Error initializing processors: {e}")
+            
+            # Start initialization in background
+            import threading
+            thread = threading.Thread(target=init_processors, daemon=True)
+            thread.start()
+            
+            # Setup UI immediately
+            print("🔄 Setting up UI...")
+            self.setup_ui()
+            
+            # Cleanup
+            print("🔄 Cleaning up processes...")
+            self.cleanup_previous_processes()
+            
+            print("✅ Direct initialization complete")
+            
+        except Exception as e:
+            print(f"❌ Error in direct initialization: {e}")
     
     def setup_button_style(self):
         """Setup custom button styling for rounded corners"""
