@@ -17,9 +17,12 @@ import tkinter.ttk as ttk
 # Document processing libraries
 try:
     import PyPDF2
+    # Test if we can create a PdfReader
     PDF_AVAILABLE = True
-except ImportError:
+    print("✅ PyPDF2 imported successfully")
+except ImportError as e:
     PDF_AVAILABLE = False
+    print(f"❌ PyPDF2 import failed: {e}")
 
 try:
     import docx
@@ -226,8 +229,17 @@ class DocumentProcessor:
                         result_queue.put(content)
                 
                 elif file_ext == ".pdf" and PDF_AVAILABLE:
+                    print(f"Processing PDF: {file_path}")
                     content = self._extract_pdf_text_fast(file_path)
-                    result_queue.put(content)
+                    if not content.strip():
+                        print(f"No text extracted from PDF: {file_path}")
+                        result_queue.put(None)
+                    else:
+                        print(f"Successfully extracted {len(content)} characters from PDF")
+                        result_queue.put(content)
+                elif file_ext == ".pdf" and not PDF_AVAILABLE:
+                    print(f"PDF processing not available - PDF_AVAILABLE: {PDF_AVAILABLE}")
+                    result_queue.put(None)
                 
                 elif file_ext == ".docx" and DOCX_AVAILABLE:
                     content = self._extract_docx_text_fast(file_path)
@@ -267,15 +279,32 @@ class DocumentProcessor:
         try:
             with open(file_path, 'rb') as file:
                 pdf_reader = PyPDF2.PdfReader(file)
+                
+                # Check if PDF is encrypted
+                if hasattr(pdf_reader, 'is_encrypted') and pdf_reader.is_encrypted:
+                    print(f"PDF is encrypted: {file_path}")
+                    return text
+                
                 # Limit to first 10 pages for speed
                 max_pages = min(10, len(pdf_reader.pages))
+                print(f"Processing {max_pages} pages from PDF")
+                
                 for i in range(max_pages):
-                    page_text = pdf_reader.pages[i].extract_text()
-                    text += page_text + "\n"
+                    try:
+                        page = pdf_reader.pages[i]
+                        page_text = page.extract_text()
+                        if page_text:
+                            text += page_text + "\n"
+                            print(f"Extracted {len(page_text)} characters from page {i+1}")
+                    except Exception as e:
+                        print(f"Error extracting text from page {i}: {e}")
+                        continue
+                    
                     # Limit total text size
                     if len(text) > 50000:  # 50KB limit
                         text = text[:50000]
                         break
+                        
         except Exception as e:
             print(f"Error extracting PDF text: {e}")
         return text
@@ -662,8 +691,8 @@ class DocumentUploadDialog:
         )
         self.stats_label.pack(pady=(0, 20))
         
-        # Load documents in background to avoid blocking
-        self.parent.after(100, self.load_documents)
+        # Load documents immediately for faster response
+        self.load_documents()
         
         # Local Files Section
         local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"), padx=15, pady=15)
@@ -694,7 +723,7 @@ class DocumentUploadDialog:
         browse_button.pack(side=tk.RIGHT)
         
         # Upload button
-        upload_button = tk.Button(
+        self.upload_button = tk.Button(
             local_frame,
             text="Upload Document",
             command=self.upload_document,
@@ -705,7 +734,16 @@ class DocumentUploadDialog:
             padx=20,
             pady=8
         )
-        upload_button.pack(pady=(5, 0))
+        self.upload_button.pack(pady=(5, 0))
+        
+        # Status label for upload feedback
+        self.status_label = tk.Label(
+            local_frame,
+            text="Select a document to upload",
+            font=("Helvetica", 9),
+            fg="gray"
+        )
+        self.status_label.pack(anchor=tk.W, pady=(5, 0))
         
         # Uploaded Documents Section
         docs_frame = tk.LabelFrame(main_frame, text="📚 Uploaded Documents", font=("Helvetica", 12, "bold"), padx=15, pady=15)
@@ -895,13 +933,10 @@ class DocumentUploadDialog:
             if file_path:
                 # Validate file exists
                 if os.path.exists(file_path):
-                    # The status_label was removed from setup_ui, so this line is no longer applicable.
-                    # self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
                     self.file_entry.delete(0, tk.END)
                     self.file_entry.insert(0, file_path)
                     self.upload_button.config(state="normal")
-                    # The status_label was removed from setup_ui, so this line is no longer applicable.
-                    # self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
+                    self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
         except Exception as e:
             print(f"Browse file error: {e}")
             messagebox.showerror("Error", f"Error opening file browser: {str(e)}")
@@ -914,12 +949,10 @@ class DocumentUploadDialog:
         
         # Validate file exists before processing
         if not os.path.exists(file_path):
-            # The status_label was removed from setup_ui, so this line is no longer applicable.
-            # self.status_label.config(text="❌ File not found")
+            self.status_label.config(text="❌ File not found")
             return
         
-        # The status_label was removed from setup_ui, so this line is no longer applicable.
-        # self.status_label.config(text="Processing document...")
+        self.status_label.config(text="Processing document...")
         self.upload_button.config(state="disabled")
         
         # Process document in a separate thread with ultra-fast processing

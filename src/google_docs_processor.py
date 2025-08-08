@@ -383,8 +383,8 @@ class GoogleDocsUploadDialog:
         )
         self.stats_label.pack(pady=(0, 20))
         
-        # Load documents in background to avoid blocking
-        self.parent.after(100, self.load_documents)
+        # Load documents immediately for faster response
+        self.load_documents()
         
         # Google Docs Section
         google_frame = tk.LabelFrame(main_frame, text="📄 Google Docs", font=("Helvetica", 12, "bold"), padx=15, pady=15)
@@ -459,7 +459,7 @@ class GoogleDocsUploadDialog:
         browse_button.pack(side=tk.RIGHT)
         
         # Upload button
-        upload_button = tk.Button(
+        self.upload_button = tk.Button(
             local_frame,
             text="Upload Document",
             command=self.upload_document,
@@ -470,7 +470,16 @@ class GoogleDocsUploadDialog:
             padx=20,
             pady=8
         )
-        upload_button.pack(pady=(5, 0))
+        self.upload_button.pack(pady=(5, 0))
+        
+        # Status label for upload feedback
+        self.status_label = tk.Label(
+            local_frame,
+            text="Select a document to upload",
+            font=("Helvetica", 9),
+            fg="gray"
+        )
+        self.status_label.pack(anchor=tk.W, pady=(5, 0))
         
         # Uploaded Documents Section
         docs_frame = tk.LabelFrame(main_frame, text="📚 Uploaded Documents", font=("Helvetica", 12, "bold"), padx=15, pady=15)
@@ -782,8 +791,8 @@ class GoogleDocsUploadDialog:
             file_path = filedialog.askopenfilename(title="Select Document")
         
         if file_path:
-            self.file_entry.delete(0, tk.END) # Changed from self.file_path_var.set(file_path)
-            self.file_entry.insert(0, file_path) # Changed from self.file_path_var.set(file_path)
+            self.file_entry.delete(0, tk.END)
+            self.file_entry.insert(0, file_path)
             self.upload_button.config(state="normal")
             self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
     
@@ -805,13 +814,14 @@ class GoogleDocsUploadDialog:
                         text=f"✅ Successfully uploaded: {os.path.basename(file_path)}"
                     ))
                     self.parent.after(0, self.update_document_list)
+                    self.parent.after(0, self.update_storage_stats)
                 else:
                     self.parent.after(0, lambda: self.status_label.config(
-                        text="❌ Failed to process document"
+                        text="❌ Failed to process document. Check if file is supported and not corrupted."
                     ))
             except Exception as e:
                 self.parent.after(0, lambda: self.status_label.config(
-                    text=f"❌ Error: {str(e)}"
+                    text=f"❌ Error: {str(e)[:50]}..."
                 ))
             finally:
                 self.parent.after(0, lambda: self.upload_button.config(state="normal"))
@@ -844,6 +854,7 @@ class GoogleDocsUploadDialog:
                                  f"Are you sure you want to remove '{documents[selection[0]]['filename']}'?"):
                 if self.document_processor.remove_document(doc_id):
                     self.update_document_list()
+                    self.update_storage_stats()
                     self.status_label.config(text="Document removed successfully")
     
     def close_dialog(self):
