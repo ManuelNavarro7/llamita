@@ -571,11 +571,14 @@ class DocumentUploadDialog:
         self.dialog.title("Documents")
         self.dialog.geometry("750x900")  # Much larger size to show all content without scrolling
         self.dialog.transient(parent)
-        self.dialog.grab_set()
         
-        # Optimize dialog performance
-        self.dialog.resizable(True, True)  # Allow resizing for better UX
-        self.dialog.update_idletasks()  # Force immediate update
+        # Ensure dialog is visible and properly configured
+        self.dialog.deiconify()  # Make sure dialog is visible
+        self.dialog.lift()  # Bring to front
+        self.dialog.focus_force()  # Force focus
+        
+        # Make dialog modal to ensure it's properly displayed
+        self.dialog.grab_set()
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
@@ -591,6 +594,10 @@ class DocumentUploadDialog:
         
         # Bind escape key to close
         self.dialog.bind('<Escape>', lambda e: self.dialog.destroy())
+        
+        # Ensure dialog is visible
+        self.dialog.deiconify()
+        self.dialog.lift()
         
         # Wait for dialog to close
         self.dialog.wait_window()
@@ -654,6 +661,9 @@ class DocumentUploadDialog:
             fg="gray"
         )
         self.stats_label.pack(pady=(0, 20))
+        
+        # Load documents in background to avoid blocking
+        self.parent.after(100, self.load_documents)
         
         # Local Files Section
         local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"), padx=15, pady=15)
@@ -774,11 +784,22 @@ class DocumentUploadDialog:
         )
         close_button.pack(pady=(10, 0))
         
-        # Load documents
-        self.load_documents()
-        
         # Bind double-click for document info
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+    
+    def load_documents(self):
+        """Load and display documents in the listbox"""
+        try:
+            if self.document_processor:
+                self.update_document_list()
+                self.update_storage_stats()
+        except Exception as e:
+            print(f"Error loading documents: {e}")
+            # Update UI to show error state
+            try:
+                self.stats_label.config(text="📊 Storage: Error loading stats")
+            except:
+                pass
     
     def update_storage_stats(self):
         """Update storage statistics display"""

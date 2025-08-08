@@ -529,9 +529,6 @@ class VoiceAssistant:
                 style='Rounded.TButton'
             )
             self.upload_button.pack(side=tk.LEFT)
-            # Add multiple click bindings for better responsiveness
-            self.upload_button.bind('<Button-1>', lambda e: self.open_document_upload())
-            self.upload_button.bind('<Double-Button-1>', lambda e: self.open_document_upload())
         
         # Clear conversation button with improved responsiveness
         self.clear_button = ttk.Button(
@@ -541,9 +538,6 @@ class VoiceAssistant:
             style='Rounded.TButton'
         )
         self.clear_button.pack(side=tk.RIGHT)
-        # Add multiple click bindings for better responsiveness
-        self.clear_button.bind('<Button-1>', lambda e: self.clear_chat())
-        self.clear_button.bind('<Double-Button-1>', lambda e: self.clear_chat())
         
         # Text input frame
         input_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
@@ -588,8 +582,6 @@ class VoiceAssistant:
             style='Rounded.TButton'
         )
         self.send_button.pack(pady=(10, 0))
-        self.send_button.bind('<Button-1>', lambda e: self.send_message())
-        self.send_button.bind('<Return>', lambda e: self.send_message())
         
         # Chat display frame
         chat_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
@@ -814,6 +806,10 @@ class VoiceAssistant:
     
     def open_document_upload(self):
         """Open the document upload dialog"""
+        # Prevent multiple dialogs from being opened
+        if hasattr(self, '_dialog_open') and self._dialog_open:
+            return
+        
         # Quick check for processors with minimal delay
         if not self._processors_ready:
             messagebox.showinfo(
@@ -831,17 +827,34 @@ class VoiceAssistant:
         
         # Open dialog immediately without additional checks
         try:
+            print("🔧 Opening document upload dialog...")
+            
+            # Mark dialog as open
+            self._dialog_open = True
+            
+            # Ensure document processor is loaded
+            if self.document_processor and not self.document_processor._documents_loaded:
+                self.document_processor.load_documents()
+            
             if GOOGLE_DOCS_AVAILABLE and self.google_processor:
+                print("📄 Using Google Docs dialog...")
                 # Use enhanced dialog with Google Docs support
                 dialog = GoogleDocsUploadDialog(self.root, self.document_processor, self.google_processor)
             else:
+                print("📄 Using basic dialog...")
                 # Use basic dialog
                 dialog = DocumentUploadDialog(self.root, self.document_processor)
+                
+            print("✅ Dialog opened successfully")
         except Exception as e:
+            print(f"❌ Error opening dialog: {e}")
             messagebox.showerror(
                 "Error",
                 f"Failed to open upload dialog: {str(e)}"
             )
+        finally:
+            # Mark dialog as closed
+            self._dialog_open = False
     
     def clear_chat(self):
         """Clear the chat display and conversation history"""

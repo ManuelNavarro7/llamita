@@ -12,6 +12,7 @@ from typing import Optional, Dict, List
 import json
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.messagebox as messagebox
 
 class GoogleDocsProcessor:
     def __init__(self):
@@ -275,11 +276,18 @@ class GoogleDocsUploadDialog:
         self.dialog.title("Documents")
         self.dialog.geometry("750x900")  # Much larger size to show all content without scrolling
         self.dialog.transient(parent)
-        self.dialog.grab_set()
+        # Don't grab focus immediately to avoid blocking
+        # self.dialog.grab_set()
         
-        # Optimize dialog performance
-        self.dialog.resizable(True, True)  # Allow resizing for better UX
-        self.dialog.update_idletasks()  # Force immediate update
+        print("✅ Dialog window created")
+        
+        # Ensure dialog is visible and properly configured
+        self.dialog.deiconify()  # Make sure dialog is visible
+        self.dialog.lift()  # Bring to front
+        self.dialog.focus_force()  # Force focus
+        
+        # Make dialog modal to ensure it's properly displayed
+        self.dialog.grab_set()
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
@@ -290,11 +298,21 @@ class GoogleDocsUploadDialog:
         # Setup UI directly without scrollable frame
         self.setup_ui()
         
+        # Force update to ensure UI is displayed
+        self.dialog.update()
+        self.dialog.update_idletasks()
+        
         # Focus on dialog
         self.dialog.focus_set()
         
         # Bind escape key to close
         self.dialog.bind('<Escape>', lambda e: self.dialog.destroy())
+        
+        print("✅ Dialog setup completed, waiting for user interaction...")
+        
+        # Ensure dialog is visible
+        self.dialog.deiconify()
+        self.dialog.lift()
         
         # Wait for dialog to close
         self.dialog.wait_window()
@@ -332,9 +350,13 @@ class GoogleDocsUploadDialog:
     
     def setup_ui(self):
         """Setup the upload dialog UI"""
+        print("🔧 Setting up upload dialog UI...")
+        
         # Main frame
         main_frame = tk.Frame(self.dialog)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        print("✅ Main frame created")
         
         # Title
         title_label = tk.Label(
@@ -343,6 +365,8 @@ class GoogleDocsUploadDialog:
             font=("Helvetica", 16, "bold")
         )
         title_label.pack(pady=(0, 20))
+        
+        print("✅ Title label created")
         
         # Storage stats (load immediately for faster response)
         try:
@@ -359,9 +383,14 @@ class GoogleDocsUploadDialog:
         )
         self.stats_label.pack(pady=(0, 20))
         
+        # Load documents in background to avoid blocking
+        self.parent.after(100, self.load_documents)
+        
         # Google Docs Section
         google_frame = tk.LabelFrame(main_frame, text="📄 Google Docs", font=("Helvetica", 12, "bold"), padx=15, pady=15)
         google_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        print("✅ Google Docs frame created")
         
         # Google Docs URL input
         url_label = tk.Label(google_frame, text="Google Docs URL:", font=("Helvetica", 10))
@@ -520,11 +549,24 @@ class GoogleDocsUploadDialog:
         )
         close_button.pack(pady=(10, 0))
         
-        # Load documents
-        self.load_documents()
-        
         # Bind double-click for document info
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+        
+        print("✅ UI setup completed")
+    
+    def load_documents(self):
+        """Load and display documents in the listbox"""
+        try:
+            if self.document_processor:
+                self.update_document_list()
+                self.update_storage_stats()
+        except Exception as e:
+            print(f"Error loading documents: {e}")
+            # Update UI to show error state
+            try:
+                self.stats_label.config(text="📊 Storage: Error loading stats")
+            except:
+                pass
     
     def show_docs_info(self):
         """Show Google Docs instructions dialog"""
