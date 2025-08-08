@@ -568,18 +568,18 @@ class DocumentUploadDialog:
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Documents")
-        self.dialog.geometry("500x400")
+        self.dialog.geometry("600x700")  # Increased size to show all content
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
         # Optimize dialog performance
-        self.dialog.resizable(False, False)  # Disable resizing for faster rendering
+        self.dialog.resizable(True, True)  # Allow resizing for better UX
         self.dialog.update_idletasks()  # Force immediate update
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
-            parent.winfo_rootx() + parent.winfo_width()//2 - 250,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 200
+            parent.winfo_rootx() + parent.winfo_width()//2 - 300,
+            parent.winfo_rooty() + parent.winfo_height()//2 - 350
         ))
         
         # Setup UI immediately for faster response
