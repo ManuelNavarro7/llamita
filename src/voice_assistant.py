@@ -175,10 +175,6 @@ class VoiceAssistant:
         print("🧹 Cleaning up previous processes...")
         self.cleanup_previous_processes()
         print("✅ Process cleanup complete")
-        
-        print("🤖 Checking Ollama status...")
-        self.check_ollama_status()
-        print("✅ Ollama check complete")
         print("🎉 Voice Assistant ready!")
     
     def setup_ui(self):
@@ -215,15 +211,6 @@ class VoiceAssistant:
         # Control buttons frame
         control_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
         control_frame.pack(fill=tk.X, pady=(0, 20))
-        
-        # Check Ollama status button
-        self.check_ollama_button = ttk.Button(
-            control_frame,
-            text="Check Ollama Status",
-            command=self.check_ollama_status,
-            style='Rounded.TButton'
-        )
-        self.check_ollama_button.pack(side=tk.LEFT, padx=(0, 10))
         
         # Clear conversation button
         self.clear_button = ttk.Button(
@@ -329,12 +316,6 @@ class VoiceAssistant:
         # Clear input
         self.input_entry.delete(0, tk.END)
         
-        # Check if Ollama is running before sending message
-        if not self.check_ollama_status():
-            self.add_to_chat("Llamita: ❌ Ollama is not running. Please start Ollama with 'ollama serve' in a terminal, then try again.")
-            self.update_status("Ollama is not running - start it with 'ollama serve'", "red")
-            return
-        
         # Add user message to chat
         self.add_to_chat(f"You: {text}")
         
@@ -370,36 +351,7 @@ class VoiceAssistant:
         except Exception as e:
             print(f"Error cleaning up processes: {e}")
     
-    def check_ollama_status(self):
-        """Check if Ollama is running and provide detailed status"""
-        try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=5)
-            if response.status_code == 200:
-                # Parse the response to get available models
-                try:
-                    data = response.json()
-                    models = data.get('models', [])
-                    if models:
-                        model_names = [model.get('name', 'Unknown') for model in models]
-                        self.update_status(f"Ollama running - Models: {', '.join(model_names)}", "green")
-                    else:
-                        self.update_status("Ollama running - No models found", "yellow")
-                    return True
-                except Exception as e:
-                    self.update_status("Ollama running - Could not parse models", "yellow")
-                    return True
-            else:
-                self.update_status(f"Ollama error: HTTP {response.status_code}", "red")
-                return False
-        except requests.exceptions.ConnectionError:
-            self.update_status("❌ Ollama is not running - start with 'ollama serve'", "red")
-            return False
-        except requests.exceptions.Timeout:
-            self.update_status("❌ Ollama timeout - server not responding", "red")
-            return False
-        except requests.exceptions.RequestException as e:
-            self.update_status(f"❌ Ollama error: {str(e)}", "red")
-            return False
+
     
     def update_status(self, message, color="white"):
         """Update the status display"""
@@ -537,20 +489,10 @@ def main():
         app = VoiceAssistant(root)
         print("✅ Voice Assistant initialized")
         
-        # Add welcome message and check Ollama status
+        # Add welcome message
         app.add_to_chat("Llamita: 🦙 Hello! I'm Llamita, your local AI assistant.")
         app.add_to_chat("Llamita: 💡 Type a message and press Enter to chat with me.")
-        
-        # Check Ollama status and provide guidance
-        if app.check_ollama_status():
-            app.add_to_chat("Llamita: ✅ Ollama is running and ready!")
-        else:
-            app.add_to_chat("Llamita: ⚠️ Ollama is not running.")
-            app.add_to_chat("Llamita: To start Ollama, open a terminal and run:")
-            app.add_to_chat("Llamita:    ollama serve")
-            app.add_to_chat("Llamita: Then download a model with:")
-            app.add_to_chat("Llamita:    ollama pull llama3:8b")
-            app.add_to_chat("Llamita: Once Ollama is running, you can chat with me!")
+        app.add_to_chat("Llamita: Make sure Ollama is running with 'ollama serve' to chat with me!")
         
         # Handle window close
         def on_closing():
