@@ -130,7 +130,7 @@ class DocumentProcessor:
     
     def process_document(self, file_path: str) -> Optional[str]:
         """
-        Process a document and extract its text content
+        Process a document and extract its text content (ultra-fast version)
         
         Args:
             file_path: Path to the document file
@@ -143,17 +143,22 @@ class DocumentProcessor:
                 print(f"File not found: {file_path}")
                 return None
             
-            # Quick validation
+            # Ultra-fast validation
             file_size = os.path.getsize(file_path)
             if file_size == 0:
                 print(f"File is empty: {file_path}")
                 return None
             
+            # Skip very large files immediately
+            if file_size > 10 * 1024 * 1024:  # 10MB limit
+                print(f"File too large: {file_size / 1024 / 1024:.1f}MB")
+                return None
+            
             # Generate document ID
             doc_id = self._generate_doc_id(file_path)
             
-            # Extract text based on file type (with timeout)
-            text_content = self._extract_text_with_timeout(file_path)
+            # Extract text with shorter timeout for faster processing
+            text_content = self._extract_text_with_timeout(file_path, timeout=15)
             if not text_content:
                 print(f"Could not extract text from: {file_path}")
                 return None
@@ -171,8 +176,8 @@ class DocumentProcessor:
             # Store document
             self.documents[doc_id] = doc_metadata
             
-            # Create chunks for context (optimized)
-            chunks = self._create_chunks_optimized(text_content)
+            # Create chunks with ultra-fast processing
+            chunks = self._create_chunks_ultra_fast(text_content)
             self.document_chunks[doc_id] = chunks
             doc_metadata["chunks_count"] = len(chunks)
             
@@ -198,8 +203,8 @@ class DocumentProcessor:
             # Fallback to filename-based ID
             return hashlib.md5(file_path.encode()).hexdigest()[:16]
     
-    def _extract_text_with_timeout(self, file_path: str, timeout: int = 30) -> Optional[str]:
-        """Extract text content with timeout to prevent hanging"""
+    def _extract_text_with_timeout(self, file_path: str, timeout: int = 15) -> Optional[str]:
+        """Extract text content with timeout to prevent hanging (ultra-fast version)"""
         import threading
         import queue
         
@@ -209,18 +214,26 @@ class DocumentProcessor:
             try:
                 file_ext = os.path.splitext(file_path)[1].lower()
                 
+                # Ultra-fast text extraction
                 if file_ext == ".txt":
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        result_queue.put(f.read())
+                        content = f.read()
+                        # Limit content size for speed
+                        if len(content) > 100000:  # 100KB limit
+                            content = content[:100000]
+                        result_queue.put(content)
                 
                 elif file_ext == ".pdf" and PDF_AVAILABLE:
-                    result_queue.put(self._extract_pdf_text(file_path))
+                    content = self._extract_pdf_text_fast(file_path)
+                    result_queue.put(content)
                 
                 elif file_ext == ".docx" and DOCX_AVAILABLE:
-                    result_queue.put(self._extract_docx_text(file_path))
+                    content = self._extract_docx_text_fast(file_path)
+                    result_queue.put(content)
                 
                 elif file_ext in [".csv", ".xlsx", ".xls"] and PANDAS_AVAILABLE:
-                    result_queue.put(self._extract_spreadsheet_text(file_path))
+                    content = self._extract_spreadsheet_text_fast(file_path)
+                    result_queue.put(content)
                 
                 else:
                     print(f"Unsupported file format: {file_ext}")
@@ -234,7 +247,7 @@ class DocumentProcessor:
         thread = threading.Thread(target=extract_worker, daemon=True)
         thread.start()
         
-        # Wait for result with timeout
+        # Wait for result with shorter timeout
         try:
             result = result_queue.get(timeout=timeout)
             return result
@@ -246,38 +259,109 @@ class DocumentProcessor:
         """Extract text content from various document formats (legacy method)"""
         return self._extract_text_with_timeout(file_path)
     
-    def _extract_pdf_text(self, file_path: str) -> str:
-        """Extract text from PDF file"""
+    def _extract_pdf_text_fast(self, file_path: str) -> str:
+        """Extract text from PDF file (ultra-fast version)"""
         text = ""
         try:
             with open(file_path, 'rb') as file:
                 pdf_reader = PyPDF2.PdfReader(file)
-                for page in pdf_reader.pages:
-                    text += page.extract_text() + "\n"
+                # Limit to first 10 pages for speed
+                max_pages = min(10, len(pdf_reader.pages))
+                for i in range(max_pages):
+                    page_text = pdf_reader.pages[i].extract_text()
+                    text += page_text + "\n"
+                    # Limit total text size
+                    if len(text) > 50000:  # 50KB limit
+                        text = text[:50000]
+                        break
         except Exception as e:
             print(f"Error extracting PDF text: {e}")
         return text
     
-    def _extract_docx_text(self, file_path: str) -> str:
-        """Extract text from DOCX file"""
+    def _extract_pdf_text(self, file_path: str) -> str:
+        """Extract text from PDF file (legacy method)"""
+        return self._extract_pdf_text_fast(file_path)
+    
+    def _extract_docx_text_fast(self, file_path: str) -> str:
+        """Extract text from DOCX file (ultra-fast version)"""
         text = ""
         try:
             doc = docx.Document(file_path)
-            for paragraph in doc.paragraphs:
-                text += paragraph.text + "\n"
+            # Limit paragraphs for speed
+            max_paragraphs = min(100, len(doc.paragraphs))
+            for i in range(max_paragraphs):
+                text += doc.paragraphs[i].text + "\n"
+                # Limit total text size
+                if len(text) > 50000:  # 50KB limit
+                    text = text[:50000]
+                    break
         except Exception as e:
             print(f"Error extracting DOCX text: {e}")
         return text
     
-    def _extract_spreadsheet_text(self, file_path: str) -> str:
-        """Extract text from spreadsheet files"""
+    def _extract_docx_text(self, file_path: str) -> str:
+        """Extract text from DOCX file (legacy method)"""
+        return self._extract_docx_text_fast(file_path)
+    
+    def _extract_spreadsheet_text_fast(self, file_path: str) -> str:
+        """Extract text from spreadsheet files (ultra-fast version)"""
         text = ""
         try:
-            df = pd.read_excel(file_path) if file_path.endswith(('.xlsx', '.xls')) else pd.read_csv(file_path)
+            # Read only first 100 rows for speed
+            if file_path.endswith(('.xlsx', '.xls')):
+                df = pd.read_excel(file_path, nrows=100)
+            else:
+                df = pd.read_csv(file_path, nrows=100)
+            
+            # Convert to string with size limit
             text = df.to_string(index=False)
+            if len(text) > 50000:  # 50KB limit
+                text = text[:50000]
         except Exception as e:
             print(f"Error extracting spreadsheet text: {e}")
         return text
+    
+    def _extract_spreadsheet_text(self, file_path: str) -> str:
+        """Extract text from spreadsheet files (legacy method)"""
+        return self._extract_spreadsheet_text_fast(file_path)
+    
+    def _create_chunks_ultra_fast(self, text: str) -> List[Dict]:
+        """Create overlapping chunks from text with ultra-fast performance"""
+        chunks = []
+        start = 0
+        text_length = len(text)
+        
+        # Ultra-fast chunking with smaller chunks and fewer limits
+        max_chunks = 50  # Reduced for speed
+        chunk_size = 800  # Smaller chunks for faster processing
+        overlap = 100     # Reduced overlap
+        
+        while start < text_length and len(chunks) < max_chunks:
+            end = start + chunk_size
+            
+            # Simple boundary detection for speed
+            if end < text_length:
+                # Quick sentence boundary search
+                for i in range(min(end, text_length - 1), max(start, end - 30), -1):
+                    if text[i] in '.!?':
+                        end = i + 1
+                        break
+            
+            chunk_text = text[start:end].strip()
+            if chunk_text:
+                chunks.append({
+                    "text": chunk_text,
+                    "start": start,
+                    "end": end,
+                    "length": len(chunk_text)
+                })
+            
+            # Move start position with reduced overlap
+            start = end - overlap
+            if start >= text_length:
+                break
+        
+        return chunks
     
     def _create_chunks_optimized(self, text: str) -> List[Dict]:
         """Create overlapping chunks from text with optimized performance"""
@@ -620,14 +704,14 @@ class DocumentUploadDialog:
         self.status_label.config(text="Processing document...")
         self.upload_button.config(state="disabled")
         
-        # Process document in a separate thread with better error handling
+        # Process document in a separate thread with ultra-fast processing
         def process_thread():
             try:
-                # Quick file size check
+                # Ultra-fast file size check
                 file_size = os.path.getsize(file_path)
-                if file_size > 50 * 1024 * 1024:  # 50MB limit
+                if file_size > 10 * 1024 * 1024:  # 10MB limit for speed
                     self.parent.after(0, lambda: self.status_label.config(
-                        text="❌ File too large (max 50MB)"
+                        text="❌ File too large (max 10MB for speed)"
                     ))
                     return
                 
@@ -636,16 +720,40 @@ class DocumentUploadDialog:
                     text=f"Processing {os.path.basename(file_path)}..."
                 ))
                 
-                doc_id = self.document_processor.process_document(file_path)
-                if doc_id:
+                # Process with timeout
+                import threading
+                import queue
+                
+                result_queue = queue.Queue()
+                
+                def process_worker():
+                    try:
+                        doc_id = self.document_processor.process_document(file_path)
+                        result_queue.put(doc_id)
+                    except Exception as e:
+                        result_queue.put(None)
+                
+                # Start processing with timeout
+                worker_thread = threading.Thread(target=process_worker, daemon=True)
+                worker_thread.start()
+                
+                # Wait for result with timeout
+                try:
+                    doc_id = result_queue.get(timeout=20)  # 20 second timeout
+                    if doc_id:
+                        self.parent.after(0, lambda: self.status_label.config(
+                            text=f"✅ Successfully uploaded: {os.path.basename(file_path)}"
+                        ))
+                        self.parent.after(0, self.update_document_list)
+                    else:
+                        self.parent.after(0, lambda: self.status_label.config(
+                            text="❌ Failed to process document"
+                        ))
+                except queue.Empty:
                     self.parent.after(0, lambda: self.status_label.config(
-                        text=f"✅ Successfully uploaded: {os.path.basename(file_path)}"
+                        text="❌ Processing timed out"
                     ))
-                    self.parent.after(0, self.update_document_list)
-                else:
-                    self.parent.after(0, lambda: self.status_label.config(
-                        text="❌ Failed to process document"
-                    ))
+                    
             except Exception as e:
                 self.parent.after(0, lambda: self.status_label.config(
                     text=f"❌ Error: {str(e)[:50]}..."
@@ -653,7 +761,7 @@ class DocumentUploadDialog:
             finally:
                 self.parent.after(0, lambda: self.upload_button.config(state="normal"))
         
-        # Use a more efficient threading approach with priority
+        # Use ultra-fast threading approach
         import threading
         thread = threading.Thread(target=process_thread, daemon=True)
         thread.start()
