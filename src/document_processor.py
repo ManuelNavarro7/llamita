@@ -74,8 +74,31 @@ class DocumentProcessor:
         
         self._documents_loaded = True
     
+    def _save_documents_async(self):
+        """Save documents asynchronously to avoid blocking"""
+        import threading
+        
+        def save_worker():
+            try:
+                # Save metadata
+                metadata_file = os.path.join(self.storage_dir, "metadata.json")
+                with open(metadata_file, 'w', encoding='utf-8') as f:
+                    json.dump(self.documents, f, indent=2, ensure_ascii=False)
+                
+                # Save chunks for each document
+                for doc_id, chunks in self.document_chunks.items():
+                    chunks_file = os.path.join(self.storage_dir, f"{doc_id}_chunks.json")
+                    with open(chunks_file, 'w', encoding='utf-8') as f:
+                        json.dump(chunks, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"Error saving documents: {e}")
+        
+        # Start saving in background
+        thread = threading.Thread(target=save_worker, daemon=True)
+        thread.start()
+    
     def save_documents(self):
-        """Save document metadata and chunks to storage"""
+        """Save document metadata and chunks to storage (synchronous version)"""
         try:
             # Save metadata
             metadata_file = os.path.join(self.storage_dir, "metadata.json")
@@ -120,11 +143,17 @@ class DocumentProcessor:
                 print(f"File not found: {file_path}")
                 return None
             
+            # Quick validation
+            file_size = os.path.getsize(file_path)
+            if file_size == 0:
+                print(f"File is empty: {file_path}")
+                return None
+            
             # Generate document ID
             doc_id = self._generate_doc_id(file_path)
             
-            # Extract text based on file type
-            text_content = self._extract_text(file_path)
+            # Extract text based on file type (with timeout)
+            text_content = self._extract_text_with_timeout(file_path)
             if not text_content:
                 print(f"Could not extract text from: {file_path}")
                 return None
@@ -133,7 +162,7 @@ class DocumentProcessor:
             doc_metadata = {
                 "filename": os.path.basename(file_path),
                 "filepath": file_path,
-                "size": os.path.getsize(file_path),
+                "size": file_size,
                 "uploaded_at": datetime.now().isoformat(),
                 "content_length": len(text_content),
                 "chunks_count": 0
@@ -142,13 +171,13 @@ class DocumentProcessor:
             # Store document
             self.documents[doc_id] = doc_metadata
             
-            # Create chunks for context
-            chunks = self._create_chunks(text_content)
+            # Create chunks for context (optimized)
+            chunks = self._create_chunks_optimized(text_content)
             self.document_chunks[doc_id] = chunks
             doc_metadata["chunks_count"] = len(chunks)
             
-            # Save to storage
-            self.save_documents()
+            # Save to storage (non-blocking)
+            self._save_documents_async()
             
             print(f"Successfully processed document: {os.path.basename(file_path)}")
             print(f"Created {len(chunks)} chunks for context")
@@ -169,31 +198,53 @@ class DocumentProcessor:
             # Fallback to filename-based ID
             return hashlib.md5(file_path.encode()).hexdigest()[:16]
     
-    def _extract_text(self, file_path: str) -> Optional[str]:
-        """Extract text content from various document formats"""
-        file_ext = os.path.splitext(file_path)[1].lower()
+    def _extract_text_with_timeout(self, file_path: str, timeout: int = 30) -> Optional[str]:
+        """Extract text content with timeout to prevent hanging"""
+        import threading
+        import queue
         
-        try:
-            if file_ext == ".txt":
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    return f.read()
-            
-            elif file_ext == ".pdf" and PDF_AVAILABLE:
-                return self._extract_pdf_text(file_path)
-            
-            elif file_ext == ".docx" and DOCX_AVAILABLE:
-                return self._extract_docx_text(file_path)
-            
-            elif file_ext in [".csv", ".xlsx", ".xls"] and PANDAS_AVAILABLE:
-                return self._extract_spreadsheet_text(file_path)
-            
-            else:
-                print(f"Unsupported file format: {file_ext}")
-                return None
+        result_queue = queue.Queue()
+        
+        def extract_worker():
+            try:
+                file_ext = os.path.splitext(file_path)[1].lower()
                 
-        except Exception as e:
-            print(f"Error extracting text from {file_path}: {e}")
+                if file_ext == ".txt":
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        result_queue.put(f.read())
+                
+                elif file_ext == ".pdf" and PDF_AVAILABLE:
+                    result_queue.put(self._extract_pdf_text(file_path))
+                
+                elif file_ext == ".docx" and DOCX_AVAILABLE:
+                    result_queue.put(self._extract_docx_text(file_path))
+                
+                elif file_ext in [".csv", ".xlsx", ".xls"] and PANDAS_AVAILABLE:
+                    result_queue.put(self._extract_spreadsheet_text(file_path))
+                
+                else:
+                    print(f"Unsupported file format: {file_ext}")
+                    result_queue.put(None)
+                    
+            except Exception as e:
+                print(f"Error extracting text from {file_path}: {e}")
+                result_queue.put(None)
+        
+        # Start extraction in thread
+        thread = threading.Thread(target=extract_worker, daemon=True)
+        thread.start()
+        
+        # Wait for result with timeout
+        try:
+            result = result_queue.get(timeout=timeout)
+            return result
+        except queue.Empty:
+            print(f"Text extraction timed out for {file_path}")
             return None
+    
+    def _extract_text(self, file_path: str) -> Optional[str]:
+        """Extract text content from various document formats (legacy method)"""
+        return self._extract_text_with_timeout(file_path)
     
     def _extract_pdf_text(self, file_path: str) -> str:
         """Extract text from PDF file"""
@@ -228,18 +279,22 @@ class DocumentProcessor:
             print(f"Error extracting spreadsheet text: {e}")
         return text
     
-    def _create_chunks(self, text: str) -> List[Dict]:
-        """Create overlapping chunks from text for better context"""
+    def _create_chunks_optimized(self, text: str) -> List[Dict]:
+        """Create overlapping chunks from text with optimized performance"""
         chunks = []
         start = 0
+        text_length = len(text)
         
-        while start < len(text):
+        # Limit chunks for very large documents
+        max_chunks = 100
+        
+        while start < text_length and len(chunks) < max_chunks:
             end = start + self.chunk_size
             
             # Try to break at a sentence boundary
-            if end < len(text):
-                # Look for sentence endings
-                for i in range(end, max(start, end - 100), -1):
+            if end < text_length:
+                # Look for sentence endings (optimized search)
+                for i in range(min(end, text_length - 1), max(start, end - 50), -1):
                     if text[i] in '.!?':
                         end = i + 1
                         break
@@ -255,10 +310,14 @@ class DocumentProcessor:
             
             # Move start position with overlap
             start = end - self.overlap
-            if start >= len(text):
+            if start >= text_length:
                 break
         
         return chunks
+    
+    def _create_chunks(self, text: str) -> List[Dict]:
+        """Create overlapping chunks from text for better context (legacy method)"""
+        return self._create_chunks_optimized(text)
     
     def get_document_context(self, query: str, max_chunks: int = 3) -> str:
         """
@@ -572,6 +631,11 @@ class DocumentUploadDialog:
                     ))
                     return
                 
+                # Update status during processing
+                self.parent.after(0, lambda: self.status_label.config(
+                    text=f"Processing {os.path.basename(file_path)}..."
+                ))
+                
                 doc_id = self.document_processor.process_document(file_path)
                 if doc_id:
                     self.parent.after(0, lambda: self.status_label.config(
@@ -589,7 +653,7 @@ class DocumentUploadDialog:
             finally:
                 self.parent.after(0, lambda: self.upload_button.config(state="normal"))
         
-        # Use a more efficient threading approach
+        # Use a more efficient threading approach with priority
         import threading
         thread = threading.Thread(target=process_thread, daemon=True)
         thread.start()

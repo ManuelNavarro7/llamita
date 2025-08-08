@@ -201,21 +201,30 @@ class VoiceAssistant:
         # Voice input state (text responses only)
         self.voice_input_enabled = False
         
-        # Document processing
-        if DOCUMENT_PROCESSING_AVAILABLE:
-            self.document_processor = DocumentProcessor()
-            print("✅ Document processing initialized")
-        else:
-            self.document_processor = None
-            print("⚠️ Document processing not available")
+        # Document processing (lazy initialization)
+        self.document_processor = None
+        self.google_processor = None
         
-        # Google Docs processing
-        if GOOGLE_DOCS_AVAILABLE:
-            self.google_processor = GoogleDocsProcessor()
-            print("✅ Google Docs integration initialized")
-        else:
-            self.google_processor = None
-            print("⚠️ Google Docs integration not available")
+        # Initialize processors in background to avoid blocking startup
+        def init_processors():
+            try:
+                if DOCUMENT_PROCESSING_AVAILABLE:
+                    self.document_processor = DocumentProcessor()
+                    print("✅ Document processing initialized")
+                else:
+                    print("⚠️ Document processing not available")
+                
+                if GOOGLE_DOCS_AVAILABLE:
+                    self.google_processor = GoogleDocsProcessor()
+                    print("✅ Google Docs integration initialized")
+                else:
+                    print("⚠️ Google Docs integration not available")
+            except Exception as e:
+                print(f"⚠️ Error initializing processors: {e}")
+        
+        # Start initialization in background
+        import threading
+        threading.Thread(target=init_processors, daemon=True).start()
         
         print("🖥️ Setting up UI...")
         self.setup_ui()
@@ -517,17 +526,31 @@ class VoiceAssistant:
     
     def open_document_upload(self):
         """Open the document upload dialog"""
-        if DOCUMENT_PROCESSING_AVAILABLE and self.document_processor:
-            if GOOGLE_DOCS_AVAILABLE and self.google_processor:
-                # Use enhanced dialog with Google Docs support
-                dialog = GoogleDocsUploadDialog(self.root, self.document_processor, self.google_processor)
+        # Check if processors are ready
+        if not self.document_processor:
+            messagebox.showinfo(
+                "Initializing",
+                "Document processing is still initializing. Please wait a moment and try again."
+            )
+            return
+        
+        try:
+            if DOCUMENT_PROCESSING_AVAILABLE and self.document_processor:
+                if GOOGLE_DOCS_AVAILABLE and self.google_processor:
+                    # Use enhanced dialog with Google Docs support
+                    dialog = GoogleDocsUploadDialog(self.root, self.document_processor, self.google_processor)
+                else:
+                    # Use basic dialog
+                    dialog = DocumentUploadDialog(self.root, self.document_processor)
             else:
-                # Use basic dialog
-                dialog = DocumentUploadDialog(self.root, self.document_processor)
-        else:
-            messagebox.showwarning(
-                "Document Processing Unavailable",
-                "Document processing is not available. Please install the required dependencies:\n\npip install PyPDF2 python-docx pandas openpyxl requests"
+                messagebox.showwarning(
+                    "Document Processing Unavailable",
+                    "Document processing is not available. Please install the required dependencies:\n\npip install PyPDF2 python-docx pandas openpyxl requests"
+                )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"Failed to open upload dialog: {str(e)}"
             )
     
     def clear_chat(self):
