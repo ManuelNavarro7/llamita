@@ -569,7 +569,7 @@ class DocumentUploadDialog:
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Documents")
-        self.dialog.geometry("700x600")  # Reasonable initial size
+        self.dialog.geometry("750x900")  # Much larger size to show all content without scrolling
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -579,14 +579,11 @@ class DocumentUploadDialog:
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
-            parent.winfo_rootx() + parent.winfo_width()//2 - 350,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 300
+            parent.winfo_rootx() + parent.winfo_width()//2 - 375,
+            parent.winfo_rooty() + parent.winfo_height()//2 - 450
         ))
         
-        # Create scrollable frame
-        self.create_scrollable_frame()
-        
-        # Setup UI
+        # Setup UI directly without scrollable frame
         self.setup_ui()
         
         # Focus on dialog
@@ -632,7 +629,7 @@ class DocumentUploadDialog:
     def setup_ui(self):
         """Setup the upload dialog UI"""
         # Main frame
-        main_frame = tk.Frame(self.scrollable_frame)
+        main_frame = tk.Frame(self.dialog)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
         # Title
@@ -709,7 +706,7 @@ class DocumentUploadDialog:
             docs_frame,
             font=("Helvetica", 10),
             selectmode=tk.SINGLE,
-            height=8
+            height=12  # Increased height for better visibility
         )
         self.documents_listbox.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         

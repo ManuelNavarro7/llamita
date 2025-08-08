@@ -273,7 +273,7 @@ class GoogleDocsUploadDialog:
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Documents")
-        self.dialog.geometry("700x600")  # Reasonable initial size
+        self.dialog.geometry("750x900")  # Much larger size to show all content without scrolling
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -283,14 +283,11 @@ class GoogleDocsUploadDialog:
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
-            parent.winfo_rootx() + parent.winfo_width()//2 - 350,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 300
+            parent.winfo_rootx() + parent.winfo_width()//2 - 375,
+            parent.winfo_rooty() + parent.winfo_height()//2 - 450
         ))
         
-        # Create scrollable frame
-        self.create_scrollable_frame()
-        
-        # Setup UI
+        # Setup UI directly without scrollable frame
         self.setup_ui()
         
         # Focus on dialog
@@ -336,7 +333,7 @@ class GoogleDocsUploadDialog:
     def setup_ui(self):
         """Setup the upload dialog UI"""
         # Main frame
-        main_frame = tk.Frame(self.scrollable_frame)
+        main_frame = tk.Frame(self.dialog)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
         # Title
@@ -455,7 +452,7 @@ class GoogleDocsUploadDialog:
             docs_frame,
             font=("Helvetica", 10),
             selectmode=tk.SINGLE,
-            height=8
+            height=12  # Increased height for better visibility
         )
         self.documents_listbox.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
@@ -649,14 +646,25 @@ class GoogleDocsUploadDialog:
             self.doc_info_label.config(text="All documents removed")
             self.status_label.config(text="✅ All documents removed successfully")
     
-    def cleanup_orphaned_files(self):
-        """Clean up orphaned chunk files"""
-        import tkinter.messagebox as messagebox
+    def cleanup_documents(self):
+        """Clean up orphaned files"""
         try:
             self.document_processor.cleanup_orphaned_files()
-            self.status_label.config(text="✅ Cleanup completed")
+            self.update_document_list()
+            self.update_storage_stats()
+            messagebox.showinfo("Cleanup Complete", "✅ Cleanup completed successfully")
         except Exception as e:
-            self.status_label.config(text=f"❌ Cleanup failed: {str(e)[:50]}")
+            messagebox.showerror("Cleanup Error", f"❌ Cleanup failed: {str(e)}")
+    
+    def cleanup_orphaned_files(self):
+        """Clean up orphaned chunk files"""
+        try:
+            self.document_processor.cleanup_orphaned_files()
+            self.update_document_list()
+            self.update_storage_stats()
+            messagebox.showinfo("Cleanup Complete", "✅ Cleanup completed successfully")
+        except Exception as e:
+            messagebox.showerror("Cleanup Error", f"❌ Cleanup failed: {str(e)}")
     
     def on_url_change(self, *args):
         """Callback for when the Google Docs URL entry changes"""
@@ -670,7 +678,7 @@ class GoogleDocsUploadDialog:
     
     def import_google_doc(self):
         """Import document from Google Docs URL"""
-        url = self.url_var.get().strip()
+        url = self.url_entry.get().strip() # Changed from self.url_var.get()
         if not url:
             self.status_label.config(text="Please enter a Google Docs URL")
             return
@@ -687,7 +695,7 @@ class GoogleDocsUploadDialog:
                         text="✅ Successfully imported from Google Docs"
                     ))
                     self.parent.after(0, self.update_document_list)
-                    self.parent.after(0, lambda: self.url_var.set(""))
+                    self.parent.after(0, lambda: self.url_entry.delete(0, tk.END)) # Changed from self.url_var.set("")
                 else:
                     self.parent.after(0, lambda: self.status_label.config(
                         text="❌ Failed to import from Google Docs"
@@ -732,13 +740,14 @@ class GoogleDocsUploadDialog:
             file_path = filedialog.askopenfilename(title="Select Document")
         
         if file_path:
-            self.file_path_var.set(file_path)
+            self.file_entry.delete(0, tk.END) # Changed from self.file_path_var.set(file_path)
+            self.file_entry.insert(0, file_path) # Changed from self.file_path_var.set(file_path)
             self.upload_button.config(state="normal")
             self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
     
     def upload_document(self):
         """Upload the selected document"""
-        file_path = self.file_path_var.get()
+        file_path = self.file_entry.get() # Changed from self.file_path_var.get()
         if not file_path:
             return
         
