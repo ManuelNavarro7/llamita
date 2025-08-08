@@ -4,7 +4,23 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 
 ## 🚀 Quick Start
 
-### Option 1: Manual Installation (Recommended)
+### Option 1: macOS App Bundle (Recommended for macOS users)
+```bash
+# Clone the repository
+git clone https://github.com/ManuelNavarro7/llamita.git
+cd llamita
+
+# Build the macOS app
+./scripts/build_app.sh
+
+# Install to Applications (optional)
+cp -r dist/Llamita.app /Applications/
+
+# Run the app
+open dist/Llamita.app
+```
+
+### Option 2: Manual Installation
 ```bash
 # Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
@@ -42,22 +58,31 @@ chmod +x install_llamita.sh
 
 ## 🔧 Alternative Run Methods
 
-### Method 1: Simple Run (Recommended)
+### Method 1: macOS App Bundle (Recommended)
+```bash
+# Build the app
+./scripts/build_app.sh
+
+# Run the app
+open dist/Llamita.app
+```
+
+### Method 2: Simple Run
 ```bash
 ./scripts/run_simple.sh
 ```
 
-### Method 2: Clean Run (No Warnings)
+### Method 3: Clean Run (No Warnings)
 ```bash
 ./scripts/run_clean.sh
 ```
 
-### Method 3: Virtual Environment Run
+### Method 4: Virtual Environment Run
 ```bash
 ./scripts/run_voice_assistant.sh
 ```
 
-### Method 4: Direct Run
+### Method 5: Direct Run
 ```bash
 PYTHONPATH=src python3 src/voice_assistant.py
 ```
@@ -98,8 +123,9 @@ llamita/
 - **🤖 Local AI** - Runs completely offline using Ollama
 - **💬 Conversation Memory** - Maintains context across messages
 - **🎨 Beautiful UI** - Clean, modern interface with custom llama icon
-- **📱 Native macOS App** - Properly packaged as a `.app` bundle
+- **📱 Native macOS App** - Properly packaged as a `.app` bundle with custom icon
 - **🔧 Easy Installation** - Multiple installation methods available
+- **🚀 One-Click Build** - Simple script to create macOS app bundle
 
 ## 📝 License
 

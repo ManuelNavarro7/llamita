@@ -7,19 +7,14 @@ from setuptools import setup
 
 APP = ['src/voice_assistant.py']
 DATA_FILES = [
-    ('', ['src/config.py']),
-    ('', ['requirements.txt']),
-    ('', ['scripts/run_voice_assistant.sh']),
-    ('', ['scripts/setup_complete.sh']),
-    ('', ['docs/SETUP_INSTRUCTIONS.md']),
-    ('', ['docs/PORTABLE_SETUP.md']),
-    ('', ['assets/icons/llamita_icon.icns']),
-    ('', ['assets/icons/llamita_icon.png'])
+    ('src', ['src/config.py']),
+    ('assets/icons', ['assets/icons/llamita_icon.png']),
+    ('assets/icons', ['assets/icons/llamita_icon.icns']),
 ]
 
 OPTIONS = {
-    'argv_emulation': False,  # Disable argv emulation to prevent directory issues
-    'iconfile': 'assets/icons/llamita_icon.icns',  # We'll create this
+    'argv_emulation': False,
+    'iconfile': 'assets/icons/llamita_icon.icns',
     'plist': {
         'CFBundleName': 'Llamita',
         'CFBundleDisplayName': '🦙 Llamita',
@@ -33,14 +28,19 @@ OPTIONS = {
         'NSRequiresAquaSystemAppearance': False,
         'NSAppleScriptEnabled': False,
         'LSBackgroundOnly': False,
+        'LSApplicationCategoryType': 'public.app-category.productivity',
     },
-    'packages': ['tkinter', 'requests', 'datetime'],
+    'packages': ['tkinter', 'requests'],
     'includes': ['config'],
-    'excludes': ['PyAudio', 'speech_recognition'],  # Exclude voice features
+    'excludes': ['PyAudio', 'speech_recognition'],
     'optimize': 2,
 }
 
 setup(
+    name='Llamita',
+    version='1.0.0',
+    description='Intelligent AI Assistant',
+    author='Llamita Team',
     app=APP,
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
