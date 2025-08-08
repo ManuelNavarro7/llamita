@@ -62,10 +62,14 @@ class DocumentProcessor:
             return
             
         metadata_file = os.path.join(self.storage_dir, "metadata.json")
+        print(f"Loading documents from: {metadata_file}")
+        
         if os.path.exists(metadata_file):
             try:
                 with open(metadata_file, 'r', encoding='utf-8') as f:
                     self.documents = json.load(f)
+                
+                print(f"Loaded {len(self.documents)} documents from metadata")
                 
                 # Load document chunks
                 for doc_id in self.documents:
@@ -73,8 +77,13 @@ class DocumentProcessor:
                     if os.path.exists(chunks_file):
                         with open(chunks_file, 'r', encoding='utf-8') as f:
                             self.document_chunks[doc_id] = json.load(f)
+                        print(f"Loaded chunks for document: {self.documents[doc_id].get('filename', 'Unknown')}")
+                    else:
+                        print(f"Warning: Chunks file not found for document: {doc_id}")
             except Exception as e:
                 print(f"Error loading documents: {e}")
+        else:
+            print("No metadata file found, starting with empty document list")
         
         self._documents_loaded = True
     
@@ -186,11 +195,12 @@ class DocumentProcessor:
             self.document_chunks[doc_id] = chunks
             doc_metadata["chunks_count"] = len(chunks)
             
-            # Save to storage (non-blocking)
-            self._save_documents_async()
+            # Save to storage (synchronous to ensure it's saved)
+            self.save_documents()
             
             print(f"Successfully processed document: {os.path.basename(file_path)}")
             print(f"Created {len(chunks)} chunks for context")
+            print(f"Document saved with ID: {doc_id}")
             
             return doc_id
             
@@ -489,7 +499,7 @@ class DocumentProcessor:
         # Ensure documents are loaded
         self.load_documents()
         
-        return [
+        documents_list = [
             {
                 "id": doc_id,
                 "filename": metadata.get("filename", "Unknown"),
@@ -499,6 +509,12 @@ class DocumentProcessor:
             }
             for doc_id, metadata in self.documents.items()
         ]
+        
+        print(f"Returning {len(documents_list)} documents from list_documents")
+        for doc in documents_list:
+            print(f"  - {doc['filename']} ({doc['chunks_count']} chunks)")
+        
+        return documents_list
     
     def remove_document(self, doc_id: str) -> bool:
         """Remove a document from storage"""

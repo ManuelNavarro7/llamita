@@ -383,9 +383,6 @@ class GoogleDocsUploadDialog:
         )
         self.stats_label.pack(pady=(0, 20))
         
-        # Load documents immediately for faster response
-        self.load_documents()
-        
         # Google Docs Section
         google_frame = tk.LabelFrame(main_frame, text="📄 Google Docs", font=("Helvetica", 12, "bold"), padx=15, pady=15)
         google_frame.pack(fill=tk.X, pady=(0, 15))
@@ -548,7 +545,7 @@ class GoogleDocsUploadDialog:
         close_button = tk.Button(
             main_frame,
             text="Close",
-            command=self.dialog.destroy,
+            command=self.close_dialog,
             font=("Helvetica", 10, "bold"),
             bg="#607D8B",
             fg="white",
@@ -560,6 +557,9 @@ class GoogleDocsUploadDialog:
         
         # Bind double-click for document info
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+        
+        # Load documents after UI is fully set up
+        self.load_documents()
         
         print("✅ UI setup completed")
     
@@ -859,4 +859,14 @@ class GoogleDocsUploadDialog:
     
     def close_dialog(self):
         """Close the upload dialog"""
-        self.dialog.destroy()
+        print("🔧 Closing dialog...")
+        try:
+            self.dialog.destroy()
+            print("✅ Dialog closed successfully")
+        except Exception as e:
+            print(f"❌ Error closing dialog: {e}")
+            # Force close if normal close fails
+            try:
+                self.dialog.quit()
+            except:
+                pass
