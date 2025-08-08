@@ -14,7 +14,7 @@ DATA_FILES = [
 
 OPTIONS = {
     'argv_emulation': False,
-    'iconfile': 'assets/icons/llamita_icon.icns',
+    'iconfile': 'assets/icons/llamita_icon.png',
     'plist': {
         'CFBundleName': 'Llamita',
         'CFBundleDisplayName': '🦙 Llamita',
