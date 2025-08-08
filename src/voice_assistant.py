@@ -283,8 +283,11 @@ class VoiceAssistant:
                 style='Rounded.TButton'
             )
             self.upload_button.pack(side=tk.LEFT)
+            # Add multiple click bindings for better responsiveness
+            self.upload_button.bind('<Button-1>', lambda e: self.open_document_upload())
+            self.upload_button.bind('<Double-Button-1>', lambda e: self.open_document_upload())
         
-        # Clear conversation button
+        # Clear conversation button with improved responsiveness
         self.clear_button = ttk.Button(
             control_frame,
             text="Clear Chat",
@@ -292,6 +295,9 @@ class VoiceAssistant:
             style='Rounded.TButton'
         )
         self.clear_button.pack(side=tk.RIGHT)
+        # Add multiple click bindings for better responsiveness
+        self.clear_button.bind('<Button-1>', lambda e: self.clear_chat())
+        self.clear_button.bind('<Double-Button-1>', lambda e: self.clear_chat())
         
         # Text input frame
         input_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
@@ -307,18 +313,28 @@ class VoiceAssistant:
         )
         input_label.pack(anchor=tk.W)
         
-        # Text input entry
+        # Text input entry with improved responsiveness
         self.input_entry = tk.Entry(
             input_frame,
             font=("Helvetica", 12),
             bg=config.COLORS['secondary'],
             fg=config.COLORS['text'],
-            insertbackground=config.COLORS['text']
+            insertbackground=config.COLORS['text'],
+            relief=tk.SOLID,
+            bd=2,
+            highlightthickness=1,
+            highlightcolor=config.COLORS['button_bg'],
+            highlightbackground=config.COLORS['secondary']
         )
         self.input_entry.pack(fill=tk.X, pady=(5, 0))
         self.input_entry.bind('<Return>', self.send_message)
+        self.input_entry.bind('<FocusIn>', self.on_input_focus)
+        self.input_entry.bind('<FocusOut>', self.on_input_focus_out)
         
-        # Send button
+        # Set focus to input field immediately for better responsiveness
+        self.input_entry.focus_set()
+        
+        # Send button with improved responsiveness
         self.send_button = ttk.Button(
             input_frame,
             text="Send",
@@ -326,6 +342,8 @@ class VoiceAssistant:
             style='Rounded.TButton'
         )
         self.send_button.pack(pady=(10, 0))
+        self.send_button.bind('<Button-1>', lambda e: self.send_message())
+        self.send_button.bind('<Return>', lambda e: self.send_message())
         
         # Chat display frame
         chat_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
@@ -364,6 +382,13 @@ class VoiceAssistant:
         
         welcome_msg += "\n\nHow can I assist you today?"
         self.add_to_chat(welcome_msg)
+        
+        # Ensure input field has focus after UI setup
+        self.root.after(100, self.ensure_input_focus)
+        
+        # Bind window focus events for better input responsiveness
+        self.root.bind('<FocusIn>', lambda e: self.ensure_input_focus())
+        self.root.bind('<Map>', lambda e: self.ensure_input_focus())
     
     # Voice input methods (disabled for simplified interface - uncomment for future use)
     """
@@ -388,14 +413,31 @@ class VoiceAssistant:
         pass
     """
     
+    def on_input_focus(self, event=None):
+        """Handle input field focus in"""
+        self.input_entry.config(highlightcolor=config.COLORS['button_bg'])
+    
+    def on_input_focus_out(self, event=None):
+        """Handle input field focus out"""
+        self.input_entry.config(highlightcolor=config.COLORS['secondary'])
+    
+    def ensure_input_focus(self):
+        """Ensure input field has focus for better responsiveness"""
+        try:
+            self.input_entry.focus_set()
+            self.input_entry.icursor(tk.END)
+        except Exception as e:
+            print(f"Focus setting error: {e}")
+    
     def send_message(self, event=None):
         """Send a text message to the assistant"""
         text = self.input_entry.get().strip()
         if not text:
             return
         
-        # Clear input
+        # Clear input and restore focus for better responsiveness
         self.input_entry.delete(0, tk.END)
+        self.input_entry.focus_set()
         
         # Add user message to chat
         self.add_to_chat(f"You: {text}")
