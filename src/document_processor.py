@@ -57,7 +57,7 @@ class DocumentProcessor:
         self._documents_loaded = False
     
     def load_documents(self):
-        """Load existing documents from storage"""
+        """Load existing documents from storage (optimized version)"""
         if self._documents_loaded:
             return
             
@@ -71,7 +71,20 @@ class DocumentProcessor:
                 
                 print(f"Loaded {len(self.documents)} documents from metadata")
                 
-                # Load document chunks
+                # Load chunks asynchronously to avoid blocking the UI
+                self._load_chunks_async()
+                
+            except Exception as e:
+                print(f"Error loading documents: {e}")
+        else:
+            print("No metadata file found, starting with empty document list")
+        
+        self._documents_loaded = True
+    
+    def _load_chunks_async(self):
+        """Load document chunks asynchronously to avoid blocking the UI"""
+        def load_chunks_worker():
+            try:
                 for doc_id in self.documents:
                     chunks_file = os.path.join(self.storage_dir, f"{doc_id}_chunks.json")
                     if os.path.exists(chunks_file):
@@ -81,11 +94,29 @@ class DocumentProcessor:
                     else:
                         print(f"Warning: Chunks file not found for document: {doc_id}")
             except Exception as e:
-                print(f"Error loading documents: {e}")
-        else:
-            print("No metadata file found, starting with empty document list")
+                print(f"Error loading chunks: {e}")
         
-        self._documents_loaded = True
+        # Start loading chunks in background
+        import threading
+        thread = threading.Thread(target=load_chunks_worker, daemon=True)
+        thread.start()
+    
+    def get_chunks_for_document(self, doc_id: str) -> List[Dict]:
+        """Get chunks for a specific document, loading them if needed"""
+        if doc_id not in self.document_chunks:
+            # Load chunks for this specific document
+            chunks_file = os.path.join(self.storage_dir, f"{doc_id}_chunks.json")
+            if os.path.exists(chunks_file):
+                try:
+                    with open(chunks_file, 'r', encoding='utf-8') as f:
+                        self.document_chunks[doc_id] = json.load(f)
+                except Exception as e:
+                    print(f"Error loading chunks for {doc_id}: {e}")
+                    return []
+            else:
+                return []
+        
+        return self.document_chunks.get(doc_id, [])
     
     def _save_documents_async(self):
         """Save documents asynchronously to avoid blocking"""
@@ -463,9 +494,12 @@ class DocumentProcessor:
         query_words = query.lower().split()
         relevant_chunks = []
         
-        for doc_id, chunks in self.document_chunks.items():
+        for doc_id in self.documents:
             doc_info = self.documents.get(doc_id, {})
             filename = doc_info.get("filename", "Unknown")
+            
+            # Load chunks for this document on demand
+            chunks = self.get_chunks_for_document(doc_id)
             
             for chunk in chunks:
                 chunk_text = chunk["text"].lower()
@@ -566,8 +600,15 @@ class DocumentProcessor:
     def get_storage_stats(self) -> Dict:
         """Get storage statistics"""
         total_docs = len(self.documents)
-        total_chunks = sum(len(chunks) for chunks in self.document_chunks.values())
-        total_size = sum(self._get_document_storage_size(doc_id) for doc_id in self.documents)
+        
+        # Calculate total chunks and size more efficiently
+        total_chunks = 0
+        total_size = 0
+        
+        for doc_id in self.documents:
+            chunks = self.get_chunks_for_document(doc_id)
+            total_chunks += len(chunks)
+            total_size += self._get_document_storage_size(doc_id)
         
         return {
             'total_documents': total_docs,
@@ -842,11 +883,14 @@ class DocumentUploadDialog:
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
     
     def load_documents(self):
-        """Load and display documents in the listbox"""
+        """Load and display documents in the listbox (optimized)"""
         try:
             if self.document_processor:
+                # Update document list immediately (fast)
                 self.update_document_list()
-                self.update_storage_stats()
+                
+                # Update stats asynchronously to avoid blocking
+                self.dialog.after(100, self.update_storage_stats)
         except Exception as e:
             print(f"Error loading documents: {e}")
             # Update UI to show error state
@@ -856,11 +900,27 @@ class DocumentUploadDialog:
                 pass
     
     def update_storage_stats(self):
-        """Update storage statistics display"""
+        """Update storage statistics display (optimized)"""
         try:
-            stats = self.document_processor.get_storage_stats()
-            stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+            # Get basic stats first (fast)
+            total_docs = len(self.document_processor.documents)
+            stats_text = f"📊 Storage: {total_docs} docs, loading..."
             self.stats_label.config(text=stats_text)
+            
+            # Update with full stats asynchronously
+            def update_full_stats():
+                try:
+                    stats = self.document_processor.get_storage_stats()
+                    stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+                    self.stats_label.config(text=stats_text)
+                except Exception as e:
+                    self.stats_label.config(text="📊 Storage: Unable to load stats")
+            
+            # Run full stats update in background
+            import threading
+            thread = threading.Thread(target=update_full_stats, daemon=True)
+            thread.start()
+            
         except Exception as e:
             self.stats_label.config(text="📊 Storage: Unable to load stats")
     
