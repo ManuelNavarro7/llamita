@@ -44,7 +44,41 @@ ollama serve
 ollama pull llama3:8b
 ```
 
+### Install Document Processing (Optional)
+```bash
+# Install document processing dependencies
+./scripts/install_document_deps.sh
+```
+
+This enables:
+- 📄 PDF document processing
+- 📝 Word document (.docx) support
+- 📊 Spreadsheet (.csv, .xlsx) analysis
+- 📋 Text file (.txt) processing
+
 That's it! 🎉 Your Llamita app is ready to use.
+
+## 📄 Document Processing
+
+Llamita can now process and answer questions about your documents!
+
+### Upload Documents
+1. Start Llamita
+2. Click "📄 Upload Documents" button
+3. Select your files (PDF, DOCX, TXT, CSV, Excel)
+4. Ask questions about your documents
+
+### Example Questions
+- "What does the document say about [topic]?"
+- "Summarize the main points"
+- "What are the key findings?"
+- "Can you explain the data in the spreadsheet?"
+
+### Supported Formats
+- **PDF Documents** (.pdf)
+- **Word Documents** (.docx)
+- **Text Files** (.txt)
+- **Spreadsheets** (.csv, .xlsx, .xls)
 
 ## 🔧 Alternative Run Methods
 
@@ -116,6 +150,7 @@ llamita/
 
 - **🤖 Local AI** - Runs completely offline using Ollama
 - **💬 Conversation Memory** - Maintains context across messages
+- **📄 Document Processing** - Upload and ask questions about PDF, DOCX, TXT, CSV, Excel files
 - **🎨 Beautiful UI** - Clean, modern interface with custom llama icon
 - **📱 Native macOS App** - Properly packaged as a `.app` bundle
 - **🚀 Easy Setup** - Simple 3-step installation process

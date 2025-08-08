@@ -111,6 +111,12 @@ else
     print_status "Basic Python dependencies installed"
 fi
 
+# Install document processing dependencies
+echo ""
+print_info "Step 5.5: Installing document processing dependencies..."
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+print_status "Document processing dependencies installed"
+
 # Step 6: Make scripts executable
 echo ""
 print_info "Step 6: Making scripts executable..."
@@ -198,6 +204,11 @@ print_status "🎉 Installation completed successfully!"
 echo ""
 echo "🚀 To run Llamita:"
 echo "   ./scripts/run_simple.sh"
+echo ""
+echo "📄 Document Processing:"
+echo "   • Upload documents via the GUI"
+echo "   • Ask questions about your files"
+echo "   • Supported: PDF, DOCX, TXT, CSV, Excel"
 echo ""
 echo "💡 Tips:"
 echo "   • Ollama is now running in the background"

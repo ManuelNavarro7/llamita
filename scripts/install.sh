@@ -46,6 +46,11 @@ echo "📦 Installing Python dependencies..."
 pip3 install -r requirements.txt
 echo "✅ Python dependencies installed successfully"
 
+# Install document processing dependencies
+echo "📦 Installing document processing dependencies..."
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+echo "✅ Document processing dependencies installed successfully"
+
 # Check if Ollama is running
 echo "🔍 Checking if Ollama is running..."
 if curl -s http://localhost:11434/api/tags &> /dev/null; then
@@ -79,5 +84,10 @@ echo "  python3 voice_assistant.py"
 echo ""
 echo "To build the macOS app:"
 echo "  python3 setup.py py2app"
+echo ""
+echo "📄 Document Processing:"
+echo "  • Upload documents via the GUI"
+echo "  • Ask questions about your files"
+echo "  • Supported: PDF, DOCX, TXT, CSV, Excel"
 echo ""
 echo "Happy voice assisting! 🎤✨"

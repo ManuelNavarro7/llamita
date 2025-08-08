@@ -116,6 +116,10 @@ if ! pip3 show requests &> /dev/null; then
     pip3 install requests
 fi
 
+# Install document processing dependencies (optional but recommended)
+print_warning "Installing document processing dependencies..."
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+
 print_success "Dependencies installed!"
 
 # Step 5: Build the app
@@ -177,6 +181,11 @@ echo "🚀 You can now:"
 echo "   - Double-click the Llamita icon on your Desktop"
 echo "   - Find Llamita in your Applications folder"
 echo "   - Drag it to your Dock for quick access"
+echo ""
+echo "📄 Document Processing:"
+echo "   • Upload documents via the GUI"
+echo "   • Ask questions about your files"
+echo "   • Supported: PDF, DOCX, TXT, CSV, Excel"
 echo ""
 echo "💡 To uninstall later, run: ./scripts/uninstall_llamita.sh"
 echo ""
