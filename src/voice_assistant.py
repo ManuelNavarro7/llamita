@@ -70,16 +70,32 @@ class VoiceAssistant:
             except:
                 pass
             
+            # Find the repo root by looking for the assets directory
+            def find_repo_root():
+                current_dir = os.path.dirname(__file__)
+                while current_dir != os.path.dirname(current_dir):  # Stop at filesystem root
+                    if os.path.exists(os.path.join(current_dir, "assets", "icons", "llamita_icon.png")):
+                        return current_dir
+                    current_dir = os.path.dirname(current_dir)
+                return None
+            
+            repo_root = find_repo_root()
+            
             # Try multiple possible icon paths (prioritize existing assets)
-            icon_paths = [
-                os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "icons", "llamita_icon.png"),  # From src/ to assets/icons/
-                "assets/icons/llamita_icon.png",  # Existing icon in assets
-                "assets/icons/llamita_icon.ico",  # Existing ICO icon
-                "llamita_icon.png",  # Root directory (if exists)
+            icon_paths = []
+            
+            # If we found the repo root, use it
+            if repo_root:
+                icon_paths.append(os.path.join(repo_root, "assets", "icons", "llamita_icon.png"))
+            
+            # Add fallback paths
+            icon_paths.extend([
+                os.path.join(os.getcwd(), "assets", "icons", "llamita_icon.png"),  # From current working directory
+                "assets/icons/llamita_icon.png",  # Relative to current directory
                 os.path.join(os.path.dirname(__file__), "llamita_icon.png"),  # Script directory
                 os.path.join(os.path.dirname(sys.executable), "..", "Resources", "llamita_icon.png"),  # App bundle
                 os.path.join(os.path.dirname(sys.executable), "..", "Resources", "llamita_icon.icns"),  # App bundle icns
-            ]
+            ])
             
             icon_loaded = False
             for icon_path in icon_paths:
