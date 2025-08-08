@@ -10,8 +10,8 @@ python-docx>=0.8.11
 pandas>=2.0.0
 openpyxl>=3.1.0
 
-# Google Docs Integration Dependencies
-requests>=2.32.0
-
 # Image Processing Dependencies
 Pillow>=10.0.0
+
+# Additional Dependencies
+tkinter  # Usually included with Python

@@ -10,16 +10,14 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 git clone https://github.com/ManuelNavarro7/llamita.git
 cd llamita
 
-# Install Python dependencies first
-pip3 install -r requirements.txt
-
-# Run the installation script
+# Run the installation script (installs all dependencies automatically)
 ./scripts/install_llamita.sh
 ```
 
 This will:
 - ✅ Install Python 3 (if not already installed)
 - ✅ Install Ollama (if not already installed)
+- ✅ Install all Python dependencies (including document processing)
 - ✅ Download a model (llama3:8b)
 - ✅ Build the macOS app
 - ✅ Install to Applications folder
@@ -31,7 +29,7 @@ This will:
 git clone https://github.com/ManuelNavarro7/llamita.git
 cd llamita
 
-# Install Python dependencies first
+# Install all Python dependencies
 pip3 install -r requirements.txt
 
 # Build the macOS app
@@ -50,18 +48,16 @@ ollama serve
 ollama pull llama3:8b
 ```
 
-### Install Document Processing (Optional)
-```bash
-# Install document processing dependencies
-./scripts/install_document_deps.sh
-```
+### Document Processing Features
 
-This enables:
+The installation automatically includes all document processing features:
 - 📄 PDF document processing
 - 📝 Word document (.docx) support
 - 📊 Spreadsheet (.csv, .xlsx) analysis
 - 📋 Text file (.txt) processing
 - 🌐 Google Docs & Sheets integration
+
+No additional installation required! 🎉
 
 That's it! 🎉 Your Llamita app is ready to use.
 

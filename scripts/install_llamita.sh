@@ -116,11 +116,15 @@ if ! pip3 show requests &> /dev/null; then
     pip3 install requests
 fi
 
-# Install document processing dependencies (optional but recommended)
-print_warning "Installing document processing dependencies..."
-pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0
+# Install all Python dependencies from requirements.txt
+print_warning "Installing all Python dependencies..."
+pip3 install -r requirements.txt
 
-print_success "Dependencies installed!"
+# Install additional dependencies that might be missing
+print_warning "Installing additional dependencies..."
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0 SpeechRecognition>=3.14.0 PyAudio>=0.2.14
+
+print_success "All dependencies installed!"
 
 # Step 5: Build the app
 print_status "Step 5: Building Llamita app..."
