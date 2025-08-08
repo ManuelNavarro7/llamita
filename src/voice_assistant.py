@@ -72,6 +72,7 @@ class VoiceAssistant:
             
             # Try multiple possible icon paths (prioritize existing assets)
             icon_paths = [
+                os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "icons", "llamita_icon.png"),  # From src/ to assets/icons/
                 "assets/icons/llamita_icon.png",  # Existing icon in assets
                 "assets/icons/llamita_icon.ico",  # Existing ICO icon
                 "llamita_icon.png",  # Root directory (if exists)
@@ -341,7 +342,7 @@ class VoiceAssistant:
             self.add_to_chat("   • Ollama is running (ollama serve)")
             self.add_to_chat("   • You have a model downloaded (ollama pull llama3:8b)")
             self.add_to_chat("   • Your internet connection is working")
-            self.update_status("Failed to get response - check Ollama status", "red")
+            self.update_status("Failed to get response - check Ollama connection", "red")
     
     def cleanup_previous_processes(self):
         """Clean up any previous processes"""
