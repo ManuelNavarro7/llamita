@@ -567,7 +567,7 @@ class DocumentUploadDialog:
         
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("Upload Document")
+        self.dialog.title("Documents")
         self.dialog.geometry("500x400")
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -582,8 +582,8 @@ class DocumentUploadDialog:
             parent.winfo_rooty() + parent.winfo_height()//2 - 200
         ))
         
-        # Setup UI in background to avoid blocking
-        self.dialog.after(10, self.setup_ui)
+        # Setup UI immediately for faster response
+        self.setup_ui()
     
     def setup_ui(self):
         """Setup the upload dialog UI"""
@@ -594,34 +594,40 @@ class DocumentUploadDialog:
         # Title
         title_label = tk.Label(
             main_frame,
-            text="📄 Upload Document",
+            text="Documents",
             font=("Helvetica", 16, "bold")
         )
         title_label.pack(pady=(0, 20))
         
-        # Storage stats
+        # Storage stats (load immediately for faster response)
+        try:
+            stats = self.document_processor.get_storage_stats()
+            stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+        except Exception as e:
+            stats_text = "📊 Storage: Loading..."
+        
         self.stats_label = tk.Label(
             main_frame,
-            text="Loading storage stats...",
+            text=stats_text,
             font=("Helvetica", 10),
             fg="gray"
         )
         self.stats_label.pack(pady=(0, 10))
         
-        # Update stats in background
-        self.dialog.after(100, self.update_storage_stats)
+        # Supported formats (load immediately)
+        try:
+            formats = self.document_processor.get_supported_formats()
+            formats_text = "Supported formats: " + ", ".join(formats)
+        except Exception as e:
+            formats_text = "Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls"
         
-        # Supported formats (load in background to avoid delay)
         self.formats_label = tk.Label(
             main_frame,
-            text="Loading supported formats...",
+            text=formats_text,
             font=("Helvetica", 10),
             fg="gray"
         )
         self.formats_label.pack(pady=(0, 20))
-        
-        # Update formats in background
-        self.dialog.after(100, self.update_supported_formats)
         
         # File selection frame
         file_frame = tk.Frame(main_frame)
@@ -750,7 +756,7 @@ class DocumentUploadDialog:
         )
         close_button.pack(pady=(20, 0))
         
-        # Update document list
+        # Update document list immediately
         self.update_document_list()
         
         # Bind double-click to show document info

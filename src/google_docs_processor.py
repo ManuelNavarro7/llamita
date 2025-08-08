@@ -267,11 +267,12 @@ class GoogleDocsUploadDialog:
         self.parent = parent
         self.document_processor = document_processor
         self.google_processor = google_processor
+        self.result = None
         
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("Upload Documents - Enhanced")
-        self.dialog.geometry("600x500")
+        self.dialog.title("Documents")
+        self.dialog.geometry("500x400")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -281,12 +282,12 @@ class GoogleDocsUploadDialog:
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
-            parent.winfo_rootx() + parent.winfo_width()//2 - 300,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 250
+            parent.winfo_rootx() + parent.winfo_width()//2 - 250,
+            parent.winfo_rooty() + parent.winfo_height()//2 - 200
         ))
         
-        # Setup UI in background to avoid blocking
-        self.dialog.after(10, self.setup_ui)
+        # Setup UI immediately for faster response
+        self.setup_ui()
     
     def setup_ui(self):
         """Setup the upload dialog UI"""
@@ -297,22 +298,25 @@ class GoogleDocsUploadDialog:
         # Title
         title_label = tk.Label(
             main_frame,
-            text="📄 Upload Documents + Google",
+            text="Documents",
             font=("Helvetica", 16, "bold")
         )
         title_label.pack(pady=(0, 20))
         
-        # Storage stats
+        # Storage stats (load immediately for faster response)
+        try:
+            stats = self.document_processor.get_storage_stats()
+            stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+        except Exception as e:
+            stats_text = "📊 Storage: Loading..."
+        
         self.stats_label = tk.Label(
             main_frame,
-            text="Loading storage stats...",
+            text=stats_text,
             font=("Helvetica", 10),
             fg="gray"
         )
         self.stats_label.pack(pady=(0, 10))
-        
-        # Update stats in background
-        self.dialog.after(100, self.update_storage_stats)
         
         # Google Docs section
         google_frame = tk.LabelFrame(main_frame, text="🌐 Google Docs & Sheets", font=("Helvetica", 12, "bold"))
@@ -365,9 +369,13 @@ class GoogleDocsUploadDialog:
         local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"))
         local_frame.pack(fill=tk.X, pady=(0, 20))
         
-        # Supported formats
-        formats = self.document_processor.get_supported_formats()
-        formats_text = "Supported formats: " + ", ".join(formats)
+        # Supported formats (load immediately)
+        try:
+            formats = self.document_processor.get_supported_formats()
+            formats_text = "Supported formats: " + ", ".join(formats)
+        except Exception as e:
+            formats_text = "Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls"
+        
         formats_label = tk.Label(
             local_frame,
             text=formats_text,
@@ -503,7 +511,7 @@ class GoogleDocsUploadDialog:
         )
         close_button.pack(pady=(20, 0))
         
-        # Update document list
+        # Update document list immediately
         self.update_document_list()
         
         # Bind double-click to show document info

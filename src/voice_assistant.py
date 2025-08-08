@@ -522,13 +522,9 @@ class VoiceAssistant:
         
         # Document upload button (if available)
         if DOCUMENT_PROCESSING_AVAILABLE:
-            button_text = "📄 Upload Documents"
-            if GOOGLE_DOCS_AVAILABLE:
-                button_text = "📄 Upload Documents + Google"
-            
             self.upload_button = ttk.Button(
                 control_frame,
-                text=button_text,
+                text="Documents",
                 command=self.open_document_upload,
                 style='Rounded.TButton'
             )
@@ -818,7 +814,7 @@ class VoiceAssistant:
     
     def open_document_upload(self):
         """Open the document upload dialog"""
-        # Check if processors are ready with better feedback
+        # Quick check for processors with minimal delay
         if not self._processors_ready:
             messagebox.showinfo(
                 "Initializing",
@@ -833,6 +829,7 @@ class VoiceAssistant:
             )
             return
         
+        # Open dialog immediately without additional checks
         try:
             if GOOGLE_DOCS_AVAILABLE and self.google_processor:
                 # Use enhanced dialog with Google Docs support
