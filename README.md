@@ -4,7 +4,24 @@ A beautiful, text-based AI assistant that runs locally using Ollama. Llamita pro
 
 ## 🚀 Quick Start (macOS)
 
-### 1. Clone and Build
+### Option 1: One-Command Installation (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/ManuelNavarro7/llamita.git
+cd llamita
+
+# Run the installation script
+./scripts/install_llamita.sh
+```
+
+This will:
+- ✅ Install Ollama (if not already installed)
+- ✅ Download a model (llama3:8b)
+- ✅ Build the macOS app
+- ✅ Install to Applications folder
+- ✅ Create a desktop shortcut
+
+### Option 2: Manual Installation
 ```bash
 # Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
@@ -12,15 +29,12 @@ cd llamita
 
 # Build the macOS app
 python3 setup.py py2app
-```
 
-### 2. Run the App
-```bash
 # Run the app
 open dist/Llamita.app
 ```
 
-### 3. Set Up Ollama (First Time Only)
+### Set Up Ollama (First Time Only)
 ```bash
 # Start Ollama (in a separate terminal)
 ollama serve
@@ -57,6 +71,23 @@ chmod +x scripts/*.sh
 - **"Ollama is not running"** → Start Ollama with `ollama serve`
 - **"icon file must exist"** → Make sure you cloned the full repository
 - **App won't start** → Check that Ollama is running and you have a model downloaded
+
+## 🗑️ Uninstall
+
+To completely remove Llamita from your system:
+
+```bash
+# Run the uninstall script
+./scripts/uninstall_llamita.sh
+```
+
+This will remove:
+- ✅ Llamita from Applications folder
+- ✅ Desktop shortcut
+- ✅ Build files
+- ✅ All references to Llamita
+
+**Note**: Ollama and models are NOT removed (you might want to keep them for other projects).
 
 ## 📁 Project Structure
 
