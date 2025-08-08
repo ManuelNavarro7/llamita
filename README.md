@@ -55,6 +55,7 @@ This enables:
 - 📝 Word document (.docx) support
 - 📊 Spreadsheet (.csv, .xlsx) analysis
 - 📋 Text file (.txt) processing
+- 🌐 Google Docs & Sheets integration
 
 That's it! 🎉 Your Llamita app is ready to use.
 
@@ -64,9 +65,17 @@ Llamita can now process and answer questions about your documents!
 
 ### Upload Documents
 1. Start Llamita
-2. Click "📄 Upload Documents" button
-3. Select your files (PDF, DOCX, TXT, CSV, Excel)
+2. Click "📄 Upload Documents + Google" button
+3. Choose your method:
+   - **Local Files**: Select files from your computer
+   - **Google Docs**: Paste Google Docs/Sheets URLs
 4. Ask questions about your documents
+
+### Google Docs & Sheets Integration
+- **Direct URL Import**: Paste Google Docs URLs to import automatically
+- **Manual Export**: Download from Google Workspace and upload
+- **Supported**: Google Docs, Google Sheets, Google Slides
+- **Formats**: PDF, DOCX, XLSX, CSV, PPTX
 
 ### Example Questions
 - "What does the document say about [topic]?"
@@ -79,6 +88,7 @@ Llamita can now process and answer questions about your documents!
 - **Word Documents** (.docx)
 - **Text Files** (.txt)
 - **Spreadsheets** (.csv, .xlsx, .xls)
+- **Google Workspace** (Docs, Sheets, Slides)
 
 ## 🔧 Alternative Run Methods
 

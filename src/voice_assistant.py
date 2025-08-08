@@ -22,6 +22,14 @@ try:
 except ImportError:
     DOCUMENT_PROCESSING_AVAILABLE = False
     print("⚠️ Document processing not available - install required dependencies")
+
+# Import Google Docs processor
+try:
+    from google_docs_processor import GoogleDocsProcessor, GoogleDocsUploadDialog
+    GOOGLE_DOCS_AVAILABLE = True
+except ImportError:
+    GOOGLE_DOCS_AVAILABLE = False
+    print("⚠️ Google Docs integration not available - install required dependencies")
 try:
     import config
 except ImportError:
@@ -201,6 +209,14 @@ class VoiceAssistant:
             self.document_processor = None
             print("⚠️ Document processing not available")
         
+        # Google Docs processing
+        if GOOGLE_DOCS_AVAILABLE:
+            self.google_processor = GoogleDocsProcessor()
+            print("✅ Google Docs integration initialized")
+        else:
+            self.google_processor = None
+            print("⚠️ Google Docs integration not available")
+        
         print("🖥️ Setting up UI...")
         self.setup_ui()
         print("✅ UI setup complete")
@@ -247,9 +263,13 @@ class VoiceAssistant:
         
         # Document upload button (if available)
         if DOCUMENT_PROCESSING_AVAILABLE:
+            button_text = "📄 Upload Documents"
+            if GOOGLE_DOCS_AVAILABLE:
+                button_text = "📄 Upload Documents + Google"
+            
             self.upload_button = ttk.Button(
                 control_frame,
-                text="📄 Upload Documents",
+                text=button_text,
                 command=self.open_document_upload,
                 style='Rounded.TButton'
             )
@@ -329,6 +349,9 @@ class VoiceAssistant:
         
         if DOCUMENT_PROCESSING_AVAILABLE:
             welcome_msg += "\n\n📄 Document Feature: You can upload documents (PDF, DOCX, TXT, CSV, Excel) and I'll use them to answer your questions. Click 'Upload Documents' to get started!"
+            
+            if GOOGLE_DOCS_AVAILABLE:
+                welcome_msg += "\n\n🌐 Google Docs & Sheets: You can also import documents directly from Google Workspace!"
         
         welcome_msg += "\n\nHow can I assist you today?"
         self.add_to_chat(welcome_msg)
@@ -495,11 +518,16 @@ class VoiceAssistant:
     def open_document_upload(self):
         """Open the document upload dialog"""
         if DOCUMENT_PROCESSING_AVAILABLE and self.document_processor:
-            dialog = DocumentUploadDialog(self.root, self.document_processor)
+            if GOOGLE_DOCS_AVAILABLE and self.google_processor:
+                # Use enhanced dialog with Google Docs support
+                dialog = GoogleDocsUploadDialog(self.root, self.document_processor, self.google_processor)
+            else:
+                # Use basic dialog
+                dialog = DocumentUploadDialog(self.root, self.document_processor)
         else:
             messagebox.showwarning(
                 "Document Processing Unavailable",
-                "Document processing is not available. Please install the required dependencies:\n\npip install PyPDF2 python-docx pandas openpyxl"
+                "Document processing is not available. Please install the required dependencies:\n\npip install PyPDF2 python-docx pandas openpyxl requests"
             )
     
     def clear_chat(self):
