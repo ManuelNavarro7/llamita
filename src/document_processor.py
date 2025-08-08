@@ -49,11 +49,14 @@ class DocumentProcessor:
         # Create storage directory if it doesn't exist
         os.makedirs(storage_dir, exist_ok=True)
         
-        # Load existing documents
-        self.load_documents()
+        # Load existing documents (lazy loading to improve startup time)
+        self._documents_loaded = False
     
     def load_documents(self):
         """Load existing documents from storage"""
+        if self._documents_loaded:
+            return
+            
         metadata_file = os.path.join(self.storage_dir, "metadata.json")
         if os.path.exists(metadata_file):
             try:
@@ -68,6 +71,8 @@ class DocumentProcessor:
                             self.document_chunks[doc_id] = json.load(f)
             except Exception as e:
                 print(f"Error loading documents: {e}")
+        
+        self._documents_loaded = True
     
     def save_documents(self):
         """Save document metadata and chunks to storage"""
@@ -307,6 +312,9 @@ class DocumentProcessor:
     
     def list_documents(self) -> List[Dict]:
         """Get list of all uploaded documents"""
+        # Ensure documents are loaded
+        self.load_documents()
+        
         return [
             {
                 "id": doc_id,
@@ -382,16 +390,17 @@ class DocumentUploadDialog:
         )
         title_label.pack(pady=(0, 20))
         
-        # Supported formats
-        formats = self.document_processor.get_supported_formats()
-        formats_text = "Supported formats: " + ", ".join(formats)
-        formats_label = tk.Label(
+        # Supported formats (load in background to avoid delay)
+        self.formats_label = tk.Label(
             main_frame,
-            text=formats_text,
+            text="Loading supported formats...",
             font=("Helvetica", 10),
             fg="gray"
         )
-        formats_label.pack(pady=(0, 20))
+        self.formats_label.pack(pady=(0, 20))
+        
+        # Update formats in background
+        self.dialog.after(100, self.update_supported_formats)
         
         # File selection frame
         file_frame = tk.Frame(main_frame)
@@ -484,6 +493,15 @@ class DocumentUploadDialog:
         
         # Update document list
         self.update_document_list()
+    
+    def update_supported_formats(self):
+        """Update the supported formats display"""
+        try:
+            formats = self.document_processor.get_supported_formats()
+            formats_text = "Supported formats: " + ", ".join(formats)
+            self.formats_label.config(text=formats_text)
+        except Exception as e:
+            self.formats_label.config(text="Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls")
     
     def browse_file(self):
         """Open file browser dialog"""
