@@ -113,7 +113,7 @@ fi
 # Install document processing dependencies
 echo ""
 print_info "Step 5.5: Installing document processing dependencies..."
-pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0
 print_status "Document processing dependencies installed"
 
 # Step 6: Make scripts executable

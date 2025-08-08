@@ -118,7 +118,7 @@ fi
 
 # Install document processing dependencies (optional but recommended)
 print_warning "Installing document processing dependencies..."
-pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0
 
 print_success "Dependencies installed!"
 

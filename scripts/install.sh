@@ -48,7 +48,7 @@ echo "✅ Python dependencies installed successfully"
 
 # Install document processing dependencies
 echo "📦 Installing document processing dependencies..."
-pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0
 echo "✅ Document processing dependencies installed successfully"
 
 # Check if Ollama is running

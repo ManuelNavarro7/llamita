@@ -41,6 +41,13 @@ except ImportError:
         DEFAULT_MODEL = "llama3:8b"
         COLORS = {
             'background': '#2c3e50',
+            'secondary': '#34495e',
+            'text': '#ecf0f1',
+            'text_secondary': '#bdc3c7',
+            'success': '#3498db',
+            'warning': '#f39c12',
+            'error': '#e74c3c',
+            'info': '#3498db',
             'button_bg': '#3498db',
             'button_fg': 'white',
             'button_active': '#2980b9',
@@ -296,6 +303,8 @@ class VoiceAssistant:
         try:
             self.update_loading_status("Setting up interface...", "⏳")
             self.setup_ui()
+            # Store reference to chat_text for later use
+            self.chat_text = getattr(self, 'chat_text', None)
             self.update_loading_status("Cleaning up processes...", "⏳")
             self.root.after(500, self.step_4_finalize)
         except Exception as e:
@@ -327,8 +336,24 @@ class VoiceAssistant:
                 self.loading_window.destroy()
                 self.loading_window = None
             print("✅ Loading screen hidden, main interface ready")
+            
+            # Add welcome messages after UI is ready
+            self.root.after(100, self.add_welcome_messages)
         except Exception as e:
             print(f"⚠️ Error hiding loading screen: {e}")
+    
+    def add_welcome_messages(self):
+        """Add welcome messages after UI is ready"""
+        try:
+            self.add_to_chat("Llamita: 🦙 Hello! I'm Llamita, your local AI assistant.")
+            self.add_to_chat("Llamita: 💡 Type a message and press Enter to chat with me.")
+            
+            if DOCUMENT_PROCESSING_AVAILABLE:
+                self.add_to_chat("Llamita: 📄 Upload documents and ask me questions about them!")
+            
+            self.add_to_chat("Llamita: Make sure Ollama is running with 'ollama serve' to chat with me!")
+        except Exception as e:
+            print(f"⚠️ Error adding welcome messages: {e}")
     
     def initialize_basic_components(self):
         """Initialize basic components without UI setup"""
@@ -781,15 +806,6 @@ def main():
         
         app = VoiceAssistant(root)
         print("✅ Voice Assistant initialized")
-        
-        # Add welcome message
-        app.add_to_chat("Llamita: 🦙 Hello! I'm Llamita, your local AI assistant.")
-        app.add_to_chat("Llamita: 💡 Type a message and press Enter to chat with me.")
-        
-        if DOCUMENT_PROCESSING_AVAILABLE:
-            app.add_to_chat("Llamita: 📄 Upload documents and ask me questions about them!")
-        
-        app.add_to_chat("Llamita: Make sure Ollama is running with 'ollama serve' to chat with me!")
         
         # Handle window close
         def on_closing():

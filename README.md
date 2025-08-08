@@ -101,6 +101,9 @@ pip3 install -r requirements.txt
 PYTHONPATH=src python3 src/voice_assistant.py
 ```
 
+> **💡 Note:** On first run, you'll see a beautiful loading screen with the Llamita icon while the app initializes. This takes about 1-2 minutes and ensures everything works perfectly!
+```
+
 ### Using Scripts
 ```bash
 # Make scripts executable
