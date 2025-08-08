@@ -289,10 +289,7 @@ class GoogleDocsUploadDialog:
         self.dialog.after(10, self.setup_ui)
     
     def setup_ui(self):
-        """Setup the enhanced upload dialog UI"""
-        import tkinter as tk
-        from tkinter import ttk, scrolledtext
-        
+        """Setup the upload dialog UI"""
         # Main frame
         main_frame = tk.Frame(self.dialog)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
@@ -300,29 +297,42 @@ class GoogleDocsUploadDialog:
         # Title
         title_label = tk.Label(
             main_frame,
-            text="📄 Upload Documents",
+            text="📄 Upload Documents + Google",
             font=("Helvetica", 16, "bold")
         )
         title_label.pack(pady=(0, 20))
+        
+        # Storage stats
+        self.stats_label = tk.Label(
+            main_frame,
+            text="Loading storage stats...",
+            font=("Helvetica", 10),
+            fg="gray"
+        )
+        self.stats_label.pack(pady=(0, 10))
+        
+        # Update stats in background
+        self.dialog.after(100, self.update_storage_stats)
         
         # Google Docs section
         google_frame = tk.LabelFrame(main_frame, text="🌐 Google Docs & Sheets", font=("Helvetica", 12, "bold"))
         google_frame.pack(fill=tk.X, pady=(0, 20))
         
         # Google Docs instructions
-        instructions_text = self.google_processor.get_google_docs_instructions()
+        instructions = self.google_processor.get_google_docs_instructions()
         instructions_label = tk.Label(
             google_frame,
-            text=instructions_text,
+            text=instructions,
             font=("Helvetica", 10),
+            fg="gray",
             justify=tk.LEFT,
-            wraplength=550
+            wraplength=450
         )
-        instructions_label.pack(padx=10, pady=10)
+        instructions_label.pack(pady=10, padx=10)
         
         # Google Docs URL input
         url_frame = tk.Frame(google_frame)
-        url_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+        url_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
         
         url_label = tk.Label(url_frame, text="Google Docs URL:", font=("Helvetica", 10))
         url_label.pack(anchor=tk.W)
@@ -331,21 +341,25 @@ class GoogleDocsUploadDialog:
         url_entry = tk.Entry(
             url_frame,
             textvariable=self.url_var,
-            font=("Helvetica", 10),
+            font=("Helvetica", 12),
             width=50
         )
         url_entry.pack(fill=tk.X, pady=(5, 0))
         
         # Import Google Doc button
-        self.import_google_button = tk.Button(
-            url_frame,
-            text="Import from Google Docs",
+        self.import_button = tk.Button(
+            google_frame,
+            text="Import Google Doc",
             command=self.import_google_doc,
-            font=("Helvetica", 10, "bold"),
+            font=("Helvetica", 12),
             bg="#4285f4",
-            fg="white"
+            fg="white",
+            state="disabled"
         )
-        self.import_google_button.pack(pady=(10, 0))
+        self.import_button.pack(pady=(10, 0))
+        
+        # Bind URL entry to enable/disable import button
+        self.url_var.trace('w', self.on_url_change)
         
         # Local files section
         local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"))
@@ -360,17 +374,17 @@ class GoogleDocsUploadDialog:
             font=("Helvetica", 10),
             fg="gray"
         )
-        formats_label.pack(pady=(10, 0))
+        formats_label.pack(pady=10)
         
-        # File selection frame
+        # File selection
         file_frame = tk.Frame(local_frame)
-        file_frame.pack(fill=tk.X, pady=(10, 0))
+        file_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
         
         self.file_path_var = tk.StringVar()
         file_entry = tk.Entry(
             file_frame,
             textvariable=self.file_path_var,
-            font=("Helvetica", 10),
+            font=("Helvetica", 12),
             state="readonly"
         )
         file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -386,23 +400,23 @@ class GoogleDocsUploadDialog:
         # Upload button
         self.upload_button = tk.Button(
             local_frame,
-            text="Upload Local File",
+            text="Upload Document",
             command=self.upload_document,
-            font=("Helvetica", 10, "bold"),
-            bg="#34a853",
+            font=("Helvetica", 12),
+            bg="#3498db",
             fg="white",
             state="disabled"
         )
-        self.upload_button.pack(pady=(10, 0))
+        self.upload_button.pack(pady=(0, 10))
         
         # Status
         self.status_label = tk.Label(
             main_frame,
-            text="Ready to upload documents",
+            text="Select a document or enter a Google Docs URL",
             font=("Helvetica", 10),
             fg="gray"
         )
-        self.status_label.pack(pady=(10, 0))
+        self.status_label.pack()
         
         # Document list
         list_frame = tk.Frame(main_frame)
@@ -431,16 +445,54 @@ class GoogleDocsUploadDialog:
         self.documents_listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.documents_listbox.yview)
         
+        # Document info frame
+        self.info_frame = tk.Frame(list_frame)
+        self.info_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        self.info_label = tk.Label(
+            self.info_frame,
+            text="Select a document to view details",
+            font=("Helvetica", 9),
+            fg="gray"
+        )
+        self.info_label.pack(anchor=tk.W)
+        
+        # Button frame
+        button_frame = tk.Frame(list_frame)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+        
         # Remove button
         self.remove_button = tk.Button(
-            list_frame,
-            text="Remove Selected",
+            button_frame,
+            text="🗑️ Remove Selected",
             command=self.remove_selected_document,
             font=("Helvetica", 10),
-            bg="#ea4335",
+            bg="#e74c3c",
             fg="white"
         )
-        self.remove_button.pack(pady=(10, 0))
+        self.remove_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Remove all button
+        self.remove_all_button = tk.Button(
+            button_frame,
+            text="🗑️ Remove All",
+            command=self.remove_all_documents,
+            font=("Helvetica", 10),
+            bg="#c0392b",
+            fg="white"
+        )
+        self.remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Cleanup button
+        self.cleanup_button = tk.Button(
+            button_frame,
+            text="🧹 Cleanup",
+            command=self.cleanup_orphaned_files,
+            font=("Helvetica", 10),
+            bg="#95a5a6",
+            fg="white"
+        )
+        self.cleanup_button.pack(side=tk.LEFT)
         
         # Close button
         close_button = tk.Button(
@@ -453,6 +505,68 @@ class GoogleDocsUploadDialog:
         
         # Update document list
         self.update_document_list()
+        
+        # Bind double-click to show document info
+        self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+    
+    def update_storage_stats(self):
+        """Update storage statistics display"""
+        try:
+            stats = self.document_processor.get_storage_stats()
+            stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+            self.stats_label.config(text=stats_text)
+        except Exception as e:
+            self.stats_label.config(text="📊 Storage: Unable to load stats")
+    
+    def show_document_info(self, event=None):
+        """Show detailed information about the selected document"""
+        selection = self.documents_listbox.curselection()
+        if not selection:
+            return
+        
+        documents = self.document_processor.list_documents()
+        if selection[0] < len(documents):
+            doc_id = documents[selection[0]]["id"]
+            doc_info = self.document_processor.get_document_info(doc_id)
+            
+            if doc_info:
+                info_text = f"📄 {doc_info['filename']}\n"
+                info_text += f"📅 Uploaded: {doc_info['uploaded_at']}\n"
+                info_text += f"📊 Chunks: {doc_info['chunks_count']}\n"
+                info_text += f"💾 Size: {round(doc_info['storage_size'] / 1024, 1)} KB\n"
+                info_text += f"🔍 Type: {doc_info.get('file_type', 'Unknown')}"
+                
+                self.info_label.config(text=info_text)
+    
+    def remove_all_documents(self):
+        """Remove all documents with confirmation"""
+        import tkinter.messagebox as messagebox
+        if messagebox.askyesno("Remove All Documents", 
+                             "Are you sure you want to remove ALL documents?\n\nThis action cannot be undone."):
+            self.document_processor.clear_all_documents()
+            self.update_document_list()
+            self.update_storage_stats()
+            self.info_label.config(text="All documents removed")
+            self.status_label.config(text="✅ All documents removed successfully")
+    
+    def cleanup_orphaned_files(self):
+        """Clean up orphaned chunk files"""
+        import tkinter.messagebox as messagebox
+        try:
+            self.document_processor.cleanup_orphaned_files()
+            self.status_label.config(text="✅ Cleanup completed")
+        except Exception as e:
+            self.status_label.config(text=f"❌ Cleanup failed: {str(e)[:50]}")
+    
+    def on_url_change(self, *args):
+        """Callback for when the Google Docs URL entry changes"""
+        url = self.url_var.get().strip()
+        if url:
+            self.import_button.config(state="normal")
+            self.status_label.config(text="Enter a Google Docs URL to import")
+        else:
+            self.import_button.config(state="disabled")
+            self.status_label.config(text="Select a document or enter a Google Docs URL")
     
     def import_google_doc(self):
         """Import document from Google Docs URL"""
@@ -462,7 +576,7 @@ class GoogleDocsUploadDialog:
             return
         
         self.status_label.config(text="Importing from Google Docs...")
-        self.import_google_button.config(state="disabled")
+        self.import_button.config(state="disabled")
         
         # Import in a separate thread
         def import_thread():
@@ -483,7 +597,7 @@ class GoogleDocsUploadDialog:
                     text=f"❌ Error: {str(e)}"
                 ))
             finally:
-                self.parent.after(0, lambda: self.import_google_button.config(state="normal"))
+                self.parent.after(0, lambda: self.import_button.config(state="normal"))
         
         import threading
         threading.Thread(target=import_thread, daemon=True).start()

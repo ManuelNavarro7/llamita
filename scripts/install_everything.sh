@@ -100,21 +100,21 @@ fi
 # Step 5: Install Python dependencies
 echo ""
 print_info "Step 5: Installing Python dependencies..."
+
+# Check if requirements.txt exists
 if [ -f "requirements.txt" ]; then
-    # Install only the packages that can be installed via pip
-    pip3 install requests SpeechRecognition PyAudio py2app
-    print_status "Python dependencies installed"
+    print_info "Installing from requirements.txt..."
+    pip3 install -r requirements.txt
 else
-    print_warning "requirements.txt not found, installing basic dependencies..."
-    pip3 install requests
-    print_status "Basic Python dependencies installed"
+    print_info "Installing core dependencies..."
+    pip3 install requests SpeechRecognition PyAudio py2app
 fi
 
 # Install document processing dependencies
-echo ""
-print_info "Step 5.5: Installing document processing dependencies..."
-pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0 Pillow>=10.0.0
-print_status "Document processing dependencies installed"
+print_info "Installing document processing dependencies..."
+pip3 install PyPDF2>=3.0.0 python-docx>=0.8.11 pandas>=2.0.0 openpyxl>=3.1.0
+
+print_status "Python dependencies installed"
 
 # Step 6: Make scripts executable
 echo ""

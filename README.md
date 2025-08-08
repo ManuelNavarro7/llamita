@@ -96,6 +96,14 @@ Llamita can now process and answer questions about your documents!
    - **Google Docs**: Paste Google Docs/Sheets URLs
 4. Ask questions about your documents
 
+### Document Management Features
+- **🗑️ Remove Selected**: Delete individual documents
+- **🗑️ Remove All**: Clear all documents at once
+- **🧹 Cleanup**: Remove orphaned files
+- **📊 Storage Stats**: View document count, chunks, and storage usage
+- **📋 Document Info**: Double-click documents to see details
+- **✅ Confirmation Dialogs**: Safe deletion with confirmations
+
 ### Google Docs & Sheets Integration
 - **Direct URL Import**: Paste Google Docs URLs to import automatically
 - **Manual Export**: Download from Google Workspace and upload

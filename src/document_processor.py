@@ -85,8 +85,9 @@ class DocumentProcessor:
                 with open(metadata_file, 'w', encoding='utf-8') as f:
                     json.dump(self.documents, f, indent=2, ensure_ascii=False)
                 
-                # Save chunks for each document
-                for doc_id, chunks in self.document_chunks.items():
+                # Save chunks for each document (create a copy to avoid iteration issues)
+                doc_chunks_copy = dict(self.document_chunks)
+                for doc_id, chunks in doc_chunks_copy.items():
                     chunks_file = os.path.join(self.storage_dir, f"{doc_id}_chunks.json")
                     with open(chunks_file, 'w', encoding='utf-8') as f:
                         json.dump(chunks, f, indent=2, ensure_ascii=False)
@@ -489,11 +490,71 @@ class DocumentProcessor:
             print(f"Error removing document {doc_id}: {e}")
             return False
     
+    def remove_multiple_documents(self, doc_ids: List[str]) -> Dict[str, bool]:
+        """Remove multiple documents and return success status for each"""
+        results = {}
+        for doc_id in doc_ids:
+            results[doc_id] = self.remove_document(doc_id)
+        return results
+    
+    def get_document_info(self, doc_id: str) -> Optional[Dict]:
+        """Get detailed information about a document"""
+        if doc_id not in self.documents:
+            return None
+        
+        doc_info = self.documents[doc_id].copy()
+        doc_info['chunks_count'] = len(self.document_chunks.get(doc_id, []))
+        doc_info['storage_size'] = self._get_document_storage_size(doc_id)
+        return doc_info
+    
+    def _get_document_storage_size(self, doc_id: str) -> int:
+        """Get the storage size of a document in bytes"""
+        try:
+            chunks_file = os.path.join(self.storage_dir, f"{doc_id}_chunks.json")
+            if os.path.exists(chunks_file):
+                return os.path.getsize(chunks_file)
+            return 0
+        except:
+            return 0
+    
+    def get_storage_stats(self) -> Dict:
+        """Get storage statistics"""
+        total_docs = len(self.documents)
+        total_chunks = sum(len(chunks) for chunks in self.document_chunks.values())
+        total_size = sum(self._get_document_storage_size(doc_id) for doc_id in self.documents)
+        
+        return {
+            'total_documents': total_docs,
+            'total_chunks': total_chunks,
+            'total_size_bytes': total_size,
+            'total_size_mb': round(total_size / (1024 * 1024), 2)
+        }
+    
     def clear_all_documents(self):
         """Remove all documents"""
         self.documents.clear()
         self.document_chunks.clear()
         self.save_documents()
+        
+        # Clean up chunk files
+        try:
+            for filename in os.listdir(self.storage_dir):
+                if filename.endswith('_chunks.json'):
+                    os.remove(os.path.join(self.storage_dir, filename))
+        except Exception as e:
+            print(f"Error cleaning up chunk files: {e}")
+    
+    def cleanup_orphaned_files(self):
+        """Remove chunk files for documents that no longer exist in metadata"""
+        try:
+            for filename in os.listdir(self.storage_dir):
+                if filename.endswith('_chunks.json'):
+                    doc_id = filename.replace('_chunks.json', '')
+                    if doc_id not in self.documents:
+                        os.remove(os.path.join(self.storage_dir, filename))
+                        print(f"Removed orphaned chunk file: {filename}")
+        except Exception as e:
+            print(f"Error cleaning up orphaned files: {e}")
 
 
 class DocumentUploadDialog:
@@ -538,6 +599,18 @@ class DocumentUploadDialog:
         )
         title_label.pack(pady=(0, 20))
         
+        # Storage stats
+        self.stats_label = tk.Label(
+            main_frame,
+            text="Loading storage stats...",
+            font=("Helvetica", 10),
+            fg="gray"
+        )
+        self.stats_label.pack(pady=(0, 10))
+        
+        # Update stats in background
+        self.dialog.after(100, self.update_storage_stats)
+        
         # Supported formats (load in background to avoid delay)
         self.formats_label = tk.Label(
             main_frame,
@@ -576,7 +649,7 @@ class DocumentUploadDialog:
             main_frame,
             text="Upload Document",
             command=self.upload_document,
-            font=("Helvetica", 12, "bold"),
+            font=("Helvetica", 12),
             bg="#3498db",
             fg="white",
             state="disabled"
@@ -619,16 +692,54 @@ class DocumentUploadDialog:
         self.documents_listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.documents_listbox.yview)
         
+        # Document info frame
+        self.info_frame = tk.Frame(list_frame)
+        self.info_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        self.info_label = tk.Label(
+            self.info_frame,
+            text="Select a document to view details",
+            font=("Helvetica", 9),
+            fg="gray"
+        )
+        self.info_label.pack(anchor=tk.W)
+        
+        # Button frame
+        button_frame = tk.Frame(list_frame)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+        
         # Remove button
         self.remove_button = tk.Button(
-            list_frame,
-            text="Remove Selected",
+            button_frame,
+            text="🗑️ Remove Selected",
             command=self.remove_selected_document,
             font=("Helvetica", 10),
             bg="#e74c3c",
             fg="white"
         )
-        self.remove_button.pack(pady=(10, 0))
+        self.remove_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Remove all button
+        self.remove_all_button = tk.Button(
+            button_frame,
+            text="🗑️ Remove All",
+            command=self.remove_all_documents,
+            font=("Helvetica", 10),
+            bg="#c0392b",
+            fg="white"
+        )
+        self.remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Cleanup button
+        self.cleanup_button = tk.Button(
+            button_frame,
+            text="🧹 Cleanup",
+            command=self.cleanup_orphaned_files,
+            font=("Helvetica", 10),
+            bg="#95a5a6",
+            fg="white"
+        )
+        self.cleanup_button.pack(side=tk.LEFT)
         
         # Close button
         close_button = tk.Button(
@@ -641,6 +752,56 @@ class DocumentUploadDialog:
         
         # Update document list
         self.update_document_list()
+        
+        # Bind double-click to show document info
+        self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+    
+    def update_storage_stats(self):
+        """Update storage statistics display"""
+        try:
+            stats = self.document_processor.get_storage_stats()
+            stats_text = f"📊 Storage: {stats['total_documents']} docs, {stats['total_chunks']} chunks, {stats['total_size_mb']} MB"
+            self.stats_label.config(text=stats_text)
+        except Exception as e:
+            self.stats_label.config(text="📊 Storage: Unable to load stats")
+    
+    def show_document_info(self, event=None):
+        """Show detailed information about the selected document"""
+        selection = self.documents_listbox.curselection()
+        if not selection:
+            return
+        
+        documents = self.document_processor.list_documents()
+        if selection[0] < len(documents):
+            doc_id = documents[selection[0]]["id"]
+            doc_info = self.document_processor.get_document_info(doc_id)
+            
+            if doc_info:
+                info_text = f"📄 {doc_info['filename']}\n"
+                info_text += f"📅 Uploaded: {doc_info['uploaded_at']}\n" # Changed from upload_date to uploaded_at
+                info_text += f"📊 Chunks: {doc_info['chunks_count']}\n"
+                info_text += f"💾 Size: {round(doc_info['storage_size'] / 1024, 1)} KB\n"
+                info_text += f"🔍 Type: {doc_info.get('file_type', 'Unknown')}"
+                
+                self.info_label.config(text=info_text)
+    
+    def remove_all_documents(self):
+        """Remove all documents with confirmation"""
+        if messagebox.askyesno("Remove All Documents", 
+                             "Are you sure you want to remove ALL documents?\n\nThis action cannot be undone."):
+            self.document_processor.clear_all_documents()
+            self.update_document_list()
+            self.update_storage_stats()
+            self.info_label.config(text="All documents removed")
+            self.status_label.config(text="✅ All documents removed successfully")
+    
+    def cleanup_orphaned_files(self):
+        """Clean up orphaned chunk files"""
+        try:
+            self.document_processor.cleanup_orphaned_files()
+            self.status_label.config(text="✅ Cleanup completed")
+        except Exception as e:
+            self.status_label.config(text=f"❌ Cleanup failed: {str(e)[:50]}")
     
     def update_supported_formats(self):
         """Update the supported formats display"""
