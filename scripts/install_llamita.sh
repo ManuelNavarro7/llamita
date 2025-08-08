@@ -77,8 +77,34 @@ else
     print_success "Models are already available"
 fi
 
-# Step 3: Install Python dependencies
-print_status "Step 3: Installing Python dependencies..."
+# Step 3: Check and install Python
+print_status "Step 3: Checking Python installation..."
+
+if ! command -v python3 &> /dev/null; then
+    print_warning "Python 3 not found. Installing Python..."
+    
+    # Check if Homebrew is installed
+    if ! command -v brew &> /dev/null; then
+        print_warning "Homebrew not found. Installing Homebrew first..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    
+    # Install Python 3
+    print_warning "Installing Python 3..."
+    brew install python@3.11
+    
+    if command -v python3 &> /dev/null; then
+        print_success "Python 3 installed successfully!"
+    else
+        print_error "Failed to install Python. Please install it manually from https://python.org"
+        exit 1
+    fi
+else
+    print_success "Python 3 is already installed"
+fi
+
+# Step 4: Install Python dependencies
+print_status "Step 4: Installing Python dependencies..."
 
 if ! pip3 show py2app &> /dev/null; then
     print_warning "Installing py2app..."
@@ -92,8 +118,8 @@ fi
 
 print_success "Dependencies installed!"
 
-# Step 4: Build the app
-print_status "Step 4: Building Llamita app..."
+# Step 5: Build the app
+print_status "Step 5: Building Llamita app..."
 
 # Clean previous builds
 rm -rf build dist
@@ -108,8 +134,8 @@ else
     exit 1
 fi
 
-# Step 5: Install to Applications
-print_status "Step 5: Installing to Applications..."
+# Step 6: Install to Applications
+print_status "Step 6: Installing to Applications..."
 
 # Remove existing app if it exists
 if [ -d "/Applications/Llamita.app" ]; then
@@ -127,8 +153,8 @@ else
     exit 1
 fi
 
-# Step 6: Create desktop alias
-print_status "Step 6: Creating desktop shortcut..."
+# Step 7: Create desktop alias
+print_status "Step 7: Creating desktop shortcut..."
 
 # Remove existing alias if it exists
 rm -f ~/Desktop/Llamita
@@ -138,7 +164,7 @@ ln -sf /Applications/Llamita.app ~/Desktop/Llamita
 
 print_success "Desktop shortcut created!"
 
-# Step 7: Final instructions
+# Step 8: Final instructions
 echo ""
 echo "🎉 Installation Complete!"
 echo "========================"

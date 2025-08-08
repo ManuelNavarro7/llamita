@@ -15,6 +15,7 @@ cd llamita
 ```
 
 This will:
+- ✅ Install Python 3 (if not already installed)
 - ✅ Install Ollama (if not already installed)
 - ✅ Download a model (llama3:8b)
 - ✅ Build the macOS app
