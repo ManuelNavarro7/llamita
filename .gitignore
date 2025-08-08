@@ -68,8 +68,6 @@ venv.bak/
 *.tmp
 *.temp
 llamita.iconset/
-llamita_icon.png
-llamita_icon.icns
 
 # Ollama models (if any)
 models/
