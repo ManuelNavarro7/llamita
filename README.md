@@ -2,99 +2,61 @@
 
 A beautiful, text-based AI assistant that runs locally using Ollama. Llamita provides a clean, modern interface for chatting with your local AI models.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (macOS)
 
-### Option 1: macOS App Bundle (Recommended for macOS users)
+### 1. Clone and Build
 ```bash
 # Clone the repository
 git clone https://github.com/ManuelNavarro7/llamita.git
 cd llamita
 
 # Build the macOS app
-./scripts/build_app.sh
+python3 setup.py py2app
+```
 
-# Install to Applications (optional)
-cp -r dist/Llamita.app /Applications/
-
+### 2. Run the App
+```bash
 # Run the app
 open dist/Llamita.app
 ```
 
-### Option 2: Manual Installation
+### 3. Set Up Ollama (First Time Only)
 ```bash
-# Clone the repository
-git clone https://github.com/ManuelNavarro7/llamita.git
-cd llamita
-
-# Install dependencies
-pip3 install -r requirements.txt
-
-# Make scripts executable
-chmod +x scripts/*.sh
-
 # Start Ollama (in a separate terminal)
 ollama serve
 
 # Download a model (in another terminal)
 ollama pull llama3:8b
-
-# Run the app
-./scripts/run_simple.sh
 ```
 
-### Option 2: One-Command Installation (if GitHub allows)
-```bash
-# Try this first (may be rate limited)
-curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_everything.sh | bash
-```
-
-### Option 3: Local Installation Script
-```bash
-# Download and run the local installer
-curl -fsSL https://raw.githubusercontent.com/ManuelNavarro7/llamita/main/scripts/install_local.sh > install_llamita.sh
-chmod +x install_llamita.sh
-./install_llamita.sh
-```
+That's it! 🎉 Your Llamita app is ready to use.
 
 ## 🔧 Alternative Run Methods
 
-### Method 1: macOS App Bundle (Recommended)
+### Direct Python Run (for development)
 ```bash
-# Build the app
-./scripts/build_app.sh
+# Install dependencies
+pip3 install -r requirements.txt
 
-# Run the app
-open dist/Llamita.app
-```
-
-### Method 2: Simple Run
-```bash
-./scripts/run_simple.sh
-```
-
-### Method 3: Clean Run (No Warnings)
-```bash
-./scripts/run_clean.sh
-```
-
-### Method 4: Virtual Environment Run
-```bash
-./scripts/run_voice_assistant.sh
-```
-
-### Method 5: Direct Run
-```bash
+# Run directly
 PYTHONPATH=src python3 src/voice_assistant.py
+```
+
+### Using Scripts
+```bash
+# Make scripts executable
+chmod +x scripts/*.sh
+
+# Run with script
+./scripts/run_simple.sh
 ```
 
 ## 🛠️ Troubleshooting
 
 ### Common Issues:
-- **"ModuleNotFoundError: No module named 'config'"** → Use `PYTHONPATH=src python3 src/voice_assistant.py`
 - **"Ollama is not running"** → Start Ollama with `ollama serve`
-- **Permission errors** → Run `chmod +x scripts/*.sh`
-- **Missing dependencies** → Run `pip3 install -r requirements.txt`
-- **GitHub rate limiting (429 error)** → Use manual installation instead
+- **"icon file must exist"** → Make sure you cloned the full repository
+- **App won't start** → Check that Ollama is running and you have a model downloaded
 
 ## 📁 Project Structure
 
@@ -123,9 +85,8 @@ llamita/
 - **🤖 Local AI** - Runs completely offline using Ollama
 - **💬 Conversation Memory** - Maintains context across messages
 - **🎨 Beautiful UI** - Clean, modern interface with custom llama icon
-- **📱 Native macOS App** - Properly packaged as a `.app` bundle with custom icon
-- **🔧 Easy Installation** - Multiple installation methods available
-- **🚀 One-Click Build** - Simple script to create macOS app bundle
+- **📱 Native macOS App** - Properly packaged as a `.app` bundle
+- **🚀 Easy Setup** - Simple 3-step installation process
 
 ## 📝 License
 
