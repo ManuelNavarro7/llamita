@@ -632,7 +632,7 @@ class DocumentUploadDialog:
     def setup_ui(self):
         """Setup the upload dialog UI"""
         # Main frame
-        main_frame = tk.Frame(self.scrollable_frame) # Use scrollable_frame
+        main_frame = tk.Frame(self.scrollable_frame)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
         # Title
@@ -656,154 +656,131 @@ class DocumentUploadDialog:
             font=("Helvetica", 10),
             fg="gray"
         )
-        self.stats_label.pack(pady=(0, 10))
+        self.stats_label.pack(pady=(0, 20))
         
-        # Supported formats (load immediately)
-        try:
-            formats = self.document_processor.get_supported_formats()
-            formats_text = "Supported formats: " + ", ".join(formats)
-        except Exception as e:
-            formats_text = "Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls"
+        # Local Files Section
+        local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"), padx=15, pady=15)
+        local_frame.pack(fill=tk.X, pady=(0, 15))
         
-        self.formats_label = tk.Label(
-            main_frame,
-            text=formats_text,
-            font=("Helvetica", 10),
-            fg="gray"
-        )
-        self.formats_label.pack(pady=(0, 20))
+        # Supported formats
+        formats_label = tk.Label(local_frame, text="Supported formats: .txt, .pdf, .docx", font=("Helvetica", 9), fg="gray")
+        formats_label.pack(anchor=tk.W, pady=(0, 10))
         
-        # File selection frame
-        file_frame = tk.Frame(main_frame)
-        file_frame.pack(fill=tk.X, pady=(0, 20))
+        # File selection
+        file_frame = tk.Frame(local_frame)
+        file_frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.file_path_var = tk.StringVar()
-        file_entry = tk.Entry(
-            file_frame,
-            textvariable=self.file_path_var,
-            font=("Helvetica", 12),
-            state="readonly"
-        )
-        file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.file_entry = tk.Entry(file_frame, font=("Helvetica", 10))
+        self.file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
         
         browse_button = tk.Button(
             file_frame,
             text="Browse",
             command=self.browse_file,
-            font=("Helvetica", 10)
+            font=("Helvetica", 10),
+            bg="#FF9800",
+            fg="white",
+            relief=tk.RAISED,
+            padx=15,
+            pady=5
         )
-        browse_button.pack(side=tk.RIGHT, padx=(10, 0))
+        browse_button.pack(side=tk.RIGHT)
         
         # Upload button
-        self.upload_button = tk.Button(
-            main_frame,
+        upload_button = tk.Button(
+            local_frame,
             text="Upload Document",
             command=self.upload_document,
-            font=("Helvetica", 12),
-            bg="#3498db",
+            font=("Helvetica", 10, "bold"),
+            bg="#4CAF50",
             fg="white",
-            state="disabled"
+            relief=tk.RAISED,
+            padx=20,
+            pady=8
         )
-        self.upload_button.pack(pady=(0, 20))
+        upload_button.pack(pady=(5, 0))
         
-        # Progress and status
-        self.status_label = tk.Label(
-            main_frame,
-            text="Select a document to upload",
-            font=("Helvetica", 10),
-            fg="gray"
-        )
-        self.status_label.pack()
+        # Uploaded Documents Section
+        docs_frame = tk.LabelFrame(main_frame, text="📚 Uploaded Documents", font=("Helvetica", 12, "bold"), padx=15, pady=15)
+        docs_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
         
-        # Document list
-        list_frame = tk.Frame(main_frame)
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=(20, 0))
-        
-        list_label = tk.Label(
-            list_frame,
-            text="Uploaded Documents:",
-            font=("Helvetica", 12, "bold")
-        )
-        list_label.pack(anchor=tk.W)
-        
-        # Create a frame for the listbox and scrollbar
-        listbox_frame = tk.Frame(list_frame)
-        listbox_frame.pack(fill=tk.BOTH, expand=True)
-        
+        # Documents list
         self.documents_listbox = tk.Listbox(
-            listbox_frame,
-            font=("Helvetica", 10)
+            docs_frame,
+            font=("Helvetica", 10),
+            selectmode=tk.SINGLE,
+            height=8
         )
-        self.documents_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.documents_listbox.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        scrollbar = tk.Scrollbar(listbox_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Document info label
+        self.doc_info_label = tk.Label(docs_frame, text="Select a document to view details", font=("Helvetica", 9), fg="gray")
+        self.doc_info_label.pack(anchor=tk.W, pady=(0, 10))
         
-        self.documents_listbox.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.documents_listbox.yview)
+        # Action buttons frame
+        action_frame = tk.Frame(docs_frame)
+        action_frame.pack(fill=tk.X)
         
-        # Document info frame
-        self.info_frame = tk.Frame(list_frame)
-        self.info_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        self.info_label = tk.Label(
-            self.info_frame,
-            text="Select a document to view details",
-            font=("Helvetica", 9),
-            fg="gray"
-        )
-        self.info_label.pack(anchor=tk.W)
-        
-        # Button frame
-        button_frame = tk.Frame(list_frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        # Remove button
-        self.remove_button = tk.Button(
-            button_frame,
+        # Remove selected button
+        remove_button = tk.Button(
+            action_frame,
             text="🗑️ Remove Selected",
             command=self.remove_selected_document,
-            font=("Helvetica", 10),
-            bg="#e74c3c",
-            fg="white"
+            font=("Helvetica", 9),
+            bg="#F44336",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.remove_button.pack(side=tk.LEFT, padx=(0, 10))
+        remove_button.pack(side=tk.LEFT, padx=(0, 10))
         
         # Remove all button
-        self.remove_all_button = tk.Button(
-            button_frame,
+        remove_all_button = tk.Button(
+            action_frame,
             text="🗑️ Remove All",
             command=self.remove_all_documents,
-            font=("Helvetica", 10),
-            bg="#c0392b",
-            fg="white"
+            font=("Helvetica", 9),
+            bg="#FF5722",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
+        remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
         
         # Cleanup button
-        self.cleanup_button = tk.Button(
-            button_frame,
+        cleanup_button = tk.Button(
+            action_frame,
             text="🧹 Cleanup",
             command=self.cleanup_orphaned_files,
-            font=("Helvetica", 10),
-            bg="#95a5a6",
-            fg="white"
+            font=("Helvetica", 9),
+            bg="#9C27B0",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.cleanup_button.pack(side=tk.LEFT)
+        cleanup_button.pack(side=tk.LEFT)
         
         # Close button
         close_button = tk.Button(
             main_frame,
             text="Close",
-            command=self.close_dialog,
-            font=("Helvetica", 12)
+            command=self.dialog.destroy,
+            font=("Helvetica", 10, "bold"),
+            bg="#607D8B",
+            fg="white",
+            relief=tk.RAISED,
+            padx=20,
+            pady=8
         )
-        close_button.pack(pady=(20, 0))
+        close_button.pack(pady=(10, 0))
         
-        # Update document list immediately
-        self.update_document_list()
+        # Load documents
+        self.load_documents()
         
-        # Bind double-click to show document info
+        # Bind double-click for document info
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
     
     def update_storage_stats(self):
@@ -833,7 +810,7 @@ class DocumentUploadDialog:
                 info_text += f"💾 Size: {round(doc_info['storage_size'] / 1024, 1)} KB\n"
                 info_text += f"🔍 Type: {doc_info.get('file_type', 'Unknown')}"
                 
-                self.info_label.config(text=info_text)
+                self.doc_info_label.config(text=info_text)
     
     def remove_all_documents(self):
         """Remove all documents with confirmation"""
@@ -842,77 +819,89 @@ class DocumentUploadDialog:
             self.document_processor.clear_all_documents()
             self.update_document_list()
             self.update_storage_stats()
-            self.info_label.config(text="All documents removed")
-            self.status_label.config(text="✅ All documents removed successfully")
+            self.doc_info_label.config(text="All documents removed")
+            # The status_label was removed from setup_ui, so this line is no longer applicable.
+            # self.status_label.config(text="✅ All documents removed successfully")
     
     def cleanup_orphaned_files(self):
         """Clean up orphaned chunk files"""
         try:
             self.document_processor.cleanup_orphaned_files()
-            self.status_label.config(text="✅ Cleanup completed")
+            # The status_label was removed from setup_ui, so this line is no longer applicable.
+            # self.status_label.config(text="✅ Cleanup completed")
         except Exception as e:
-            self.status_label.config(text=f"❌ Cleanup failed: {str(e)[:50]}")
+            # The status_label was removed from setup_ui, so this line is no longer applicable.
+            # self.status_label.config(text=f"❌ Cleanup failed: {str(e)[:50]}")
+            pass # No status_label to update
     
     def update_supported_formats(self):
         """Update the supported formats display"""
         try:
             formats = self.document_processor.get_supported_formats()
             formats_text = "Supported formats: " + ", ".join(formats)
-            self.formats_label.config(text=formats_text)
+            # The formats_label was removed from setup_ui, so this line is no longer applicable.
+            # self.formats_label.config(text=formats_text)
         except Exception as e:
-            self.formats_label.config(text="Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls")
+            # The formats_label was removed from setup_ui, so this line is no longer applicable.
+            # self.formats_label.config(text="Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls")
+            pass # No formats_label to update
     
     def browse_file(self):
         """Open file browser dialog"""
         # Use a more efficient approach for macOS
         try:
             # Show a simple message first
-            self.status_label.config(text="Opening file browser...")
+            # The status_label was removed from setup_ui, so this line is no longer applicable.
+            # self.status_label.config(text="Opening file browser...")
             self.dialog.update()
             
-            # Use a basic dialog without file type filtering for speed
-            file_path = filedialog.askopenfilename(
-                title="Select Document",
-                initialdir=os.path.expanduser("~/Documents")
-            )
+            # Try to use a more modern file dialog if available
+            try:
+                file_path = filedialog.askopenfilename(
+                    title="Select Document",
+                    filetypes=[
+                        ("All supported", "*.txt;*.pdf;*.docx;*.csv;*.xlsx;*.xls"),
+                        ("Text files", "*.txt"),
+                        ("PDF files", "*.pdf"),
+                        ("Word documents", "*.docx"),
+                        ("Excel files", "*.xlsx;*.xls"),
+                        ("CSV files", "*.csv"),
+                        ("All files", "*.*")
+                    ]
+                )
+            except Exception as e:
+                print(f"File dialog error: {e}")
+                # Fallback to basic file dialog
+                file_path = filedialog.askopenfilename(title="Select Document")
             
-            # If user selects a file, validate it's supported
             if file_path:
-                file_ext = os.path.splitext(file_path)[1].lower()
-                supported_extensions = ['.txt', '.pdf', '.docx', '.csv', '.xlsx', '.xls']
-                
-                if file_ext not in supported_extensions:
-                    import tkinter.messagebox as messagebox
-                    messagebox.showwarning(
-                        "Unsupported Format",
-                        f"File format '{file_ext}' may not be supported.\nSupported formats: {', '.join(supported_extensions)}"
-                    )
-                else:
-                    self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
-                    
+                # Validate file exists
+                if os.path.exists(file_path):
+                    # The status_label was removed from setup_ui, so this line is no longer applicable.
+                    # self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
+                    self.file_entry.delete(0, tk.END)
+                    self.file_entry.insert(0, file_path)
+                    self.upload_button.config(state="normal")
+                    # The status_label was removed from setup_ui, so this line is no longer applicable.
+                    # self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
         except Exception as e:
-            print(f"File dialog error: {e}")
-            self.status_label.config(text="Error opening file browser")
-            # Fallback to basic file dialog
-            file_path = filedialog.askopenfilename(title="Select Document")
-        
-        if file_path:
-            self.file_path_var.set(file_path)
-            self.upload_button.config(state="normal")
-            self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
+            print(f"Browse file error: {e}")
+            messagebox.showerror("Error", f"Error opening file browser: {str(e)}")
     
     def upload_document(self):
         """Upload the selected document"""
-        file_path = self.file_path_var.get()
+        file_path = self.file_entry.get()
         if not file_path:
             return
         
         # Validate file exists before processing
         if not os.path.exists(file_path):
-            self.status_label.config(text="❌ File not found")
+            # The status_label was removed from setup_ui, so this line is no longer applicable.
+            # self.status_label.config(text="❌ File not found")
             return
         
-        self.status_label.config(text="Processing document...")
+        # The status_label was removed from setup_ui, so this line is no longer applicable.
+        # self.status_label.config(text="Processing document...")
         self.upload_button.config(state="disabled")
         
         # Process document in a separate thread with ultra-fast processing
@@ -921,14 +910,16 @@ class DocumentUploadDialog:
                 # Ultra-fast file size check
                 file_size = os.path.getsize(file_path)
                 if file_size > 10 * 1024 * 1024:  # 10MB limit for speed
-                    self.parent.after(0, lambda: self.status_label.config(
-                        text="❌ File too large (max 10MB for speed)"
+                    self.parent.after(0, lambda: messagebox.showwarning(
+                        "File Too Large",
+                        "File too large (max 10MB for speed). Please choose a smaller file."
                     ))
                     return
                 
                 # Update status during processing
-                self.parent.after(0, lambda: self.status_label.config(
-                    text=f"Processing {os.path.basename(file_path)}..."
+                self.parent.after(0, lambda: messagebox.showinfo(
+                    "Uploading Document",
+                    f"Uploading {os.path.basename(file_path)}..."
                 ))
                 
                 # Process with timeout
@@ -952,22 +943,26 @@ class DocumentUploadDialog:
                 try:
                     doc_id = result_queue.get(timeout=20)  # 20 second timeout
                     if doc_id:
-                        self.parent.after(0, lambda: self.status_label.config(
-                            text=f"✅ Successfully uploaded: {os.path.basename(file_path)}"
+                        self.parent.after(0, lambda: messagebox.showinfo(
+                            "Upload Successful",
+                            f"✅ Successfully uploaded: {os.path.basename(file_path)}"
                         ))
-                        self.parent.after(0, self.update_document_list)
+                        self.update_document_list()
                     else:
-                        self.parent.after(0, lambda: self.status_label.config(
-                            text="❌ Failed to process document"
+                        self.parent.after(0, lambda: messagebox.showerror(
+                            "Upload Failed",
+                            "Failed to process document"
                         ))
                 except queue.Empty:
-                    self.parent.after(0, lambda: self.status_label.config(
-                        text="❌ Processing timed out"
+                    self.parent.after(0, lambda: messagebox.showerror(
+                        "Processing Timed Out",
+                        "Document processing timed out. Please try again."
                     ))
                     
             except Exception as e:
-                self.parent.after(0, lambda: self.status_label.config(
-                    text=f"❌ Error: {str(e)[:50]}..."
+                self.parent.after(0, lambda: messagebox.showerror(
+                    "Error",
+                    f"Error: {str(e)[:50]}..."
                 ))
             finally:
                 self.parent.after(0, lambda: self.upload_button.config(state="normal"))
@@ -1000,7 +995,8 @@ class DocumentUploadDialog:
                                  f"Are you sure you want to remove '{documents[selection[0]]['filename']}'?"):
                 if self.document_processor.remove_document(doc_id):
                     self.update_document_list()
-                    self.status_label.config(text="Document removed successfully")
+                    # The status_label was removed from setup_ui, so this line is no longer applicable.
+                    # self.status_label.config(text="Document removed successfully")
     
     def close_dialog(self):
         """Close the upload dialog"""

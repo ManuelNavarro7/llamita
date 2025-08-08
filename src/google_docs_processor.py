@@ -360,206 +360,254 @@ class GoogleDocsUploadDialog:
             font=("Helvetica", 10),
             fg="gray"
         )
-        self.stats_label.pack(pady=(0, 10))
+        self.stats_label.pack(pady=(0, 20))
         
-        # Google Docs section
-        google_frame = tk.LabelFrame(main_frame, text="🌐 Google Docs & Sheets", font=("Helvetica", 12, "bold"))
-        google_frame.pack(fill=tk.X, pady=(0, 20))
-        
-        # Google Docs instructions
-        instructions = self.google_processor.get_google_docs_instructions()
-        instructions_label = tk.Label(
-            google_frame,
-            text=instructions,
-            font=("Helvetica", 10),
-            fg="gray",
-            justify=tk.LEFT,
-            wraplength=450
-        )
-        instructions_label.pack(pady=10, padx=10)
+        # Google Docs Section
+        google_frame = tk.LabelFrame(main_frame, text="📄 Google Docs", font=("Helvetica", 12, "bold"), padx=15, pady=15)
+        google_frame.pack(fill=tk.X, pady=(0, 15))
         
         # Google Docs URL input
+        url_label = tk.Label(google_frame, text="Google Docs URL:", font=("Helvetica", 10))
+        url_label.pack(anchor=tk.W, pady=(0, 5))
+        
         url_frame = tk.Frame(google_frame)
-        url_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
+        url_frame.pack(fill=tk.X, pady=(0, 10))
         
-        url_label = tk.Label(url_frame, text="Google Docs URL:", font=("Helvetica", 10))
-        url_label.pack(anchor=tk.W)
-        
-        self.url_var = tk.StringVar()
-        url_entry = tk.Entry(
-            url_frame,
-            textvariable=self.url_var,
-            font=("Helvetica", 12),
-            width=50
-        )
-        url_entry.pack(fill=tk.X, pady=(5, 0))
+        self.url_entry = tk.Entry(url_frame, font=("Helvetica", 10), width=50)
+        self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
         
         # Import Google Doc button
-        self.import_button = tk.Button(
-            google_frame,
+        import_button = tk.Button(
+            url_frame,
             text="Import Google Doc",
             command=self.import_google_doc,
-            font=("Helvetica", 12),
-            bg="#4285f4",
+            font=("Helvetica", 10, "bold"),
+            bg="#4CAF50",
             fg="white",
-            state="disabled"
+            relief=tk.RAISED,
+            padx=15,
+            pady=5
         )
-        self.import_button.pack(pady=(10, 0))
+        import_button.pack(side=tk.RIGHT)
         
-        # Bind URL entry to enable/disable import button
-        self.url_var.trace('w', self.on_url_change)
-        
-        # Local files section
-        local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"))
-        local_frame.pack(fill=tk.X, pady=(0, 20))
-        
-        # Supported formats (load immediately)
-        try:
-            formats = self.document_processor.get_supported_formats()
-            formats_text = "Supported formats: " + ", ".join(formats)
-        except Exception as e:
-            formats_text = "Supported formats: .txt, .pdf, .docx, .csv, .xlsx, .xls"
-        
-        formats_label = tk.Label(
-            local_frame,
-            text=formats_text,
-            font=("Helvetica", 10),
-            fg="gray"
+        # Docs Info button
+        info_button = tk.Button(
+            google_frame,
+            text="📋 Docs Info",
+            command=self.show_docs_info,
+            font=("Helvetica", 9),
+            bg="#2196F3",
+            fg="white",
+            relief=tk.FLAT,
+            padx=10,
+            pady=3
         )
-        formats_label.pack(pady=10)
+        info_button.pack(anchor=tk.W, pady=(5, 0))
+        
+        # Local Files Section
+        local_frame = tk.LabelFrame(main_frame, text="💻 Local Files", font=("Helvetica", 12, "bold"), padx=15, pady=15)
+        local_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        # Supported formats
+        formats_label = tk.Label(local_frame, text="Supported formats: .txt, .pdf, .docx", font=("Helvetica", 9), fg="gray")
+        formats_label.pack(anchor=tk.W, pady=(0, 10))
         
         # File selection
         file_frame = tk.Frame(local_frame)
-        file_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
+        file_frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.file_path_var = tk.StringVar()
-        file_entry = tk.Entry(
-            file_frame,
-            textvariable=self.file_path_var,
-            font=("Helvetica", 12),
-            state="readonly"
-        )
-        file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.file_entry = tk.Entry(file_frame, font=("Helvetica", 10))
+        self.file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
         
         browse_button = tk.Button(
             file_frame,
             text="Browse",
             command=self.browse_file,
-            font=("Helvetica", 10)
+            font=("Helvetica", 10),
+            bg="#FF9800",
+            fg="white",
+            relief=tk.RAISED,
+            padx=15,
+            pady=5
         )
-        browse_button.pack(side=tk.RIGHT, padx=(10, 0))
+        browse_button.pack(side=tk.RIGHT)
         
         # Upload button
-        self.upload_button = tk.Button(
+        upload_button = tk.Button(
             local_frame,
             text="Upload Document",
             command=self.upload_document,
-            font=("Helvetica", 12),
-            bg="#3498db",
+            font=("Helvetica", 10, "bold"),
+            bg="#4CAF50",
             fg="white",
-            state="disabled"
+            relief=tk.RAISED,
+            padx=20,
+            pady=8
         )
-        self.upload_button.pack(pady=(0, 10))
+        upload_button.pack(pady=(5, 0))
         
-        # Status
-        self.status_label = tk.Label(
-            main_frame,
-            text="Select a document or enter a Google Docs URL",
-            font=("Helvetica", 10),
-            fg="gray"
-        )
-        self.status_label.pack()
+        # Uploaded Documents Section
+        docs_frame = tk.LabelFrame(main_frame, text="📚 Uploaded Documents", font=("Helvetica", 12, "bold"), padx=15, pady=15)
+        docs_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
         
-        # Document list
-        list_frame = tk.Frame(main_frame)
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=(20, 0))
-        
-        list_label = tk.Label(
-            list_frame,
-            text="Uploaded Documents:",
-            font=("Helvetica", 12, "bold")
-        )
-        list_label.pack(anchor=tk.W)
-        
-        # Create a frame for the listbox and scrollbar
-        listbox_frame = tk.Frame(list_frame)
-        listbox_frame.pack(fill=tk.BOTH, expand=True)
-        
+        # Documents list
         self.documents_listbox = tk.Listbox(
-            listbox_frame,
-            font=("Helvetica", 10)
+            docs_frame,
+            font=("Helvetica", 10),
+            selectmode=tk.SINGLE,
+            height=8
         )
-        self.documents_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.documents_listbox.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        scrollbar = tk.Scrollbar(listbox_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Document info label
+        self.doc_info_label = tk.Label(docs_frame, text="Select a document to view details", font=("Helvetica", 9), fg="gray")
+        self.doc_info_label.pack(anchor=tk.W, pady=(0, 10))
         
-        self.documents_listbox.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.documents_listbox.yview)
+        # Action buttons frame
+        action_frame = tk.Frame(docs_frame)
+        action_frame.pack(fill=tk.X)
         
-        # Document info frame
-        self.info_frame = tk.Frame(list_frame)
-        self.info_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        self.info_label = tk.Label(
-            self.info_frame,
-            text="Select a document to view details",
-            font=("Helvetica", 9),
-            fg="gray"
-        )
-        self.info_label.pack(anchor=tk.W)
-        
-        # Button frame
-        button_frame = tk.Frame(list_frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        # Remove button
-        self.remove_button = tk.Button(
-            button_frame,
+        # Remove selected button
+        remove_button = tk.Button(
+            action_frame,
             text="🗑️ Remove Selected",
             command=self.remove_selected_document,
-            font=("Helvetica", 10),
-            bg="#e74c3c",
-            fg="white"
+            font=("Helvetica", 9),
+            bg="#F44336",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.remove_button.pack(side=tk.LEFT, padx=(0, 10))
+        remove_button.pack(side=tk.LEFT, padx=(0, 10))
         
         # Remove all button
-        self.remove_all_button = tk.Button(
-            button_frame,
+        remove_all_button = tk.Button(
+            action_frame,
             text="🗑️ Remove All",
             command=self.remove_all_documents,
-            font=("Helvetica", 10),
-            bg="#c0392b",
-            fg="white"
+            font=("Helvetica", 9),
+            bg="#FF5722",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
+        remove_all_button.pack(side=tk.LEFT, padx=(0, 10))
         
         # Cleanup button
-        self.cleanup_button = tk.Button(
-            button_frame,
+        cleanup_button = tk.Button(
+            action_frame,
             text="🧹 Cleanup",
-            command=self.cleanup_orphaned_files,
-            font=("Helvetica", 10),
-            bg="#95a5a6",
-            fg="white"
+            command=self.cleanup_documents,
+            font=("Helvetica", 9),
+            bg="#9C27B0",
+            fg="white",
+            relief=tk.RAISED,
+            padx=10,
+            pady=5
         )
-        self.cleanup_button.pack(side=tk.LEFT)
+        cleanup_button.pack(side=tk.LEFT)
         
         # Close button
         close_button = tk.Button(
             main_frame,
             text="Close",
-            command=self.close_dialog,
-            font=("Helvetica", 12)
+            command=self.dialog.destroy,
+            font=("Helvetica", 10, "bold"),
+            bg="#607D8B",
+            fg="white",
+            relief=tk.RAISED,
+            padx=20,
+            pady=8
         )
-        close_button.pack(pady=(20, 0))
+        close_button.pack(pady=(10, 0))
         
-        # Update document list immediately
-        self.update_document_list()
+        # Load documents
+        self.load_documents()
         
-        # Bind double-click to show document info
+        # Bind double-click for document info
         self.documents_listbox.bind('<Double-Button-1>', self.show_document_info)
+    
+    def show_docs_info(self):
+        """Show Google Docs instructions dialog"""
+        info_dialog = tk.Toplevel(self.dialog)
+        info_dialog.title("Google Docs Instructions")
+        info_dialog.geometry("500x400")
+        info_dialog.transient(self.dialog)
+        info_dialog.grab_set()
+        
+        # Center the dialog
+        info_dialog.geometry("+%d+%d" % (
+            self.dialog.winfo_rootx() + self.dialog.winfo_width()//2 - 250,
+            self.dialog.winfo_rooty() + self.dialog.winfo_height()//2 - 200
+        ))
+        
+        # Main frame
+        main_frame = tk.Frame(info_dialog, padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title
+        title_label = tk.Label(
+            main_frame,
+            text="📋 Google Docs Instructions",
+            font=("Helvetica", 16, "bold")
+        )
+        title_label.pack(pady=(0, 20))
+        
+        # Instructions text
+        instructions = """
+🔗 **How to Import Google Docs:**
+
+1. **Get the URL**: Open your Google Doc and copy the URL from the address bar
+
+2. **Paste the URL**: Paste the Google Docs URL into the input field above
+
+3. **Import**: Click "Import Google Doc" to add it to your documents
+
+4. **Supported Formats**:
+   • Google Docs (.gdoc)
+   • Google Sheets (.gsheet)
+   • Google Slides (.gslides)
+
+5. **Requirements**:
+   • Document must be publicly accessible OR
+   • You must be logged into the correct Google account
+
+6. **Tips**:
+   • Make sure the document is shared with appropriate permissions
+   • Large documents may take a moment to process
+   • You can import multiple documents
+
+📝 **Note**: The document will be processed and added to your local storage for AI analysis.
+        """
+        
+        text_widget = tk.Text(
+            main_frame,
+            font=("Helvetica", 10),
+            wrap=tk.WORD,
+            padx=10,
+            pady=10,
+            bg="#f5f5f5",
+            relief=tk.SUNKEN
+        )
+        text_widget.pack(fill=tk.BOTH, expand=True)
+        text_widget.insert(tk.END, instructions)
+        text_widget.config(state=tk.DISABLED)
+        
+        # Close button
+        close_button = tk.Button(
+            main_frame,
+            text="Close",
+            command=info_dialog.destroy,
+            font=("Helvetica", 10, "bold"),
+            bg="#607D8B",
+            fg="white",
+            relief=tk.RAISED,
+            padx=20,
+            pady=8
+        )
+        close_button.pack(pady=(15, 0))
     
     def update_storage_stats(self):
         """Update storage statistics display"""
@@ -588,7 +636,7 @@ class GoogleDocsUploadDialog:
                 info_text += f"💾 Size: {round(doc_info['storage_size'] / 1024, 1)} KB\n"
                 info_text += f"🔍 Type: {doc_info.get('file_type', 'Unknown')}"
                 
-                self.info_label.config(text=info_text)
+                self.doc_info_label.config(text=info_text)
     
     def remove_all_documents(self):
         """Remove all documents with confirmation"""
@@ -598,7 +646,7 @@ class GoogleDocsUploadDialog:
             self.document_processor.clear_all_documents()
             self.update_document_list()
             self.update_storage_stats()
-            self.info_label.config(text="All documents removed")
+            self.doc_info_label.config(text="All documents removed")
             self.status_label.config(text="✅ All documents removed successfully")
     
     def cleanup_orphaned_files(self):
