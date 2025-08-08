@@ -272,7 +272,7 @@ class GoogleDocsUploadDialog:
         # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Documents")
-        self.dialog.geometry("600x700")  # Increased size to show all content
+        self.dialog.geometry("700x800")  # Much larger size to show all content
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -282,8 +282,8 @@ class GoogleDocsUploadDialog:
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
-            parent.winfo_rootx() + parent.winfo_width()//2 - 300,
-            parent.winfo_rooty() + parent.winfo_height()//2 - 350
+            parent.winfo_rootx() + parent.winfo_width()//2 - 350,
+            parent.winfo_rooty() + parent.winfo_height()//2 - 400
         ))
         
         # Setup UI immediately for faster response
