@@ -361,12 +361,16 @@ class DocumentUploadDialog:
         self.document_processor = document_processor
         self.result = None
         
-        # Create dialog window
+        # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Upload Document")
         self.dialog.geometry("500x400")
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # Optimize dialog performance
+        self.dialog.resizable(False, False)  # Disable resizing for faster rendering
+        self.dialog.update_idletasks()  # Force immediate update
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
@@ -374,7 +378,8 @@ class DocumentUploadDialog:
             parent.winfo_rooty() + parent.winfo_height()//2 - 200
         ))
         
-        self.setup_ui()
+        # Setup UI in background to avoid blocking
+        self.dialog.after(10, self.setup_ui)
     
     def setup_ui(self):
         """Setup the upload dialog UI"""
@@ -505,17 +510,37 @@ class DocumentUploadDialog:
     
     def browse_file(self):
         """Open file browser dialog"""
-        file_path = filedialog.askopenfilename(
-            title="Select Document",
-            filetypes=[
-                ("All supported", "*.txt *.pdf *.docx *.csv *.xlsx *.xls"),
-                ("Text files", "*.txt"),
-                ("PDF files", "*.pdf"),
-                ("Word documents", "*.docx"),
-                ("Spreadsheets", "*.csv *.xlsx *.xls"),
-                ("All files", "*.*")
-            ]
-        )
+        # Use a more efficient approach for macOS
+        try:
+            # Show a simple message first
+            self.status_label.config(text="Opening file browser...")
+            self.dialog.update()
+            
+            # Use a basic dialog without file type filtering for speed
+            file_path = filedialog.askopenfilename(
+                title="Select Document",
+                initialdir=os.path.expanduser("~/Documents")
+            )
+            
+            # If user selects a file, validate it's supported
+            if file_path:
+                file_ext = os.path.splitext(file_path)[1].lower()
+                supported_extensions = ['.txt', '.pdf', '.docx', '.csv', '.xlsx', '.xls']
+                
+                if file_ext not in supported_extensions:
+                    import tkinter.messagebox as messagebox
+                    messagebox.showwarning(
+                        "Unsupported Format",
+                        f"File format '{file_ext}' may not be supported.\nSupported formats: {', '.join(supported_extensions)}"
+                    )
+                else:
+                    self.status_label.config(text=f"Selected: {os.path.basename(file_path)}")
+                    
+        except Exception as e:
+            print(f"File dialog error: {e}")
+            self.status_label.config(text="Error opening file browser")
+            # Fallback to basic file dialog
+            file_path = filedialog.askopenfilename(title="Select Document")
         
         if file_path:
             self.file_path_var.set(file_path)
@@ -528,12 +553,25 @@ class DocumentUploadDialog:
         if not file_path:
             return
         
+        # Validate file exists before processing
+        if not os.path.exists(file_path):
+            self.status_label.config(text="❌ File not found")
+            return
+        
         self.status_label.config(text="Processing document...")
         self.upload_button.config(state="disabled")
         
-        # Process document in a separate thread
+        # Process document in a separate thread with better error handling
         def process_thread():
             try:
+                # Quick file size check
+                file_size = os.path.getsize(file_path)
+                if file_size > 50 * 1024 * 1024:  # 50MB limit
+                    self.parent.after(0, lambda: self.status_label.config(
+                        text="❌ File too large (max 50MB)"
+                    ))
+                    return
+                
                 doc_id = self.document_processor.process_document(file_path)
                 if doc_id:
                     self.parent.after(0, lambda: self.status_label.config(
@@ -546,12 +584,15 @@ class DocumentUploadDialog:
                     ))
             except Exception as e:
                 self.parent.after(0, lambda: self.status_label.config(
-                    text=f"❌ Error: {str(e)}"
+                    text=f"❌ Error: {str(e)[:50]}..."
                 ))
             finally:
                 self.parent.after(0, lambda: self.upload_button.config(state="normal"))
         
-        threading.Thread(target=process_thread, daemon=True).start()
+        # Use a more efficient threading approach
+        import threading
+        thread = threading.Thread(target=process_thread, daemon=True)
+        thread.start()
     
     def update_document_list(self):
         """Update the document list display"""

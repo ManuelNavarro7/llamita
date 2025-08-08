@@ -10,6 +10,7 @@ import subprocess
 import requests
 from typing import Optional, Dict, List
 import json
+import tkinter as tk
 
 class GoogleDocsProcessor:
     def __init__(self):
@@ -267,12 +268,16 @@ class GoogleDocsUploadDialog:
         self.document_processor = document_processor
         self.google_processor = google_processor
         
-        # Create dialog window
+        # Create dialog window with optimized settings
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Upload Documents - Enhanced")
         self.dialog.geometry("600x500")
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # Optimize dialog performance
+        self.dialog.resizable(False, False)  # Disable resizing for faster rendering
+        self.dialog.update_idletasks()  # Force immediate update
         
         # Center the dialog
         self.dialog.geometry("+%d+%d" % (
@@ -280,7 +285,8 @@ class GoogleDocsUploadDialog:
             parent.winfo_rooty() + parent.winfo_height()//2 - 250
         ))
         
-        self.setup_ui()
+        # Setup UI in background to avoid blocking
+        self.dialog.after(10, self.setup_ui)
     
     def setup_ui(self):
         """Setup the enhanced upload dialog UI"""
@@ -486,17 +492,30 @@ class GoogleDocsUploadDialog:
         """Open file browser dialog"""
         import tkinter.filedialog as filedialog
         
-        file_path = filedialog.askopenfilename(
-            title="Select Document",
-            filetypes=[
-                ("All supported", "*.txt *.pdf *.docx *.csv *.xlsx *.xls"),
-                ("Text files", "*.txt"),
-                ("PDF files", "*.pdf"),
-                ("Word documents", "*.docx"),
-                ("Spreadsheets", "*.csv *.xlsx *.xls"),
-                ("All files", "*.*")
-            ]
-        )
+        # Use a simpler, faster approach
+        try:
+            # Start with a basic dialog for speed
+            file_path = filedialog.askopenfilename(
+                title="Select Document",
+                initialdir=os.path.expanduser("~/Documents")
+            )
+            
+            # If user selects a file, validate it's supported
+            if file_path:
+                file_ext = os.path.splitext(file_path)[1].lower()
+                supported_extensions = ['.txt', '.pdf', '.docx', '.csv', '.xlsx', '.xls']
+                
+                if file_ext not in supported_extensions:
+                    import tkinter.messagebox as messagebox
+                    messagebox.showwarning(
+                        "Unsupported Format",
+                        f"File format '{file_ext}' may not be supported.\nSupported formats: {', '.join(supported_extensions)}"
+                    )
+                    
+        except Exception as e:
+            print(f"File dialog error: {e}")
+            # Fallback to basic file dialog
+            file_path = filedialog.askopenfilename(title="Select Document")
         
         if file_path:
             self.file_path_var.set(file_path)
