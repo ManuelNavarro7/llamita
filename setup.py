@@ -31,7 +31,7 @@ OPTIONS = {
         'LSApplicationCategoryType': 'public.app-category.productivity',
         'NSPrincipalClass': 'NSApplication',
     },
-    'packages': ['tkinter', 'requests', 'PIL', 'PIL._tkinter_finder'],
+    'packages': ['tkinter', 'requests'] + (['PIL', 'PIL._tkinter_finder'] if hasattr(__import__('sys').modules.get('PIL'), 'Image') else []),
     'includes': ['config', 'document_processor', 'google_docs_processor'],
     'excludes': ['PyAudio', 'speech_recognition'],
     'optimize': 1,  # Reduced optimization for better compatibility
