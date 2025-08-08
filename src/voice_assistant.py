@@ -185,6 +185,8 @@ class VoiceAssistant:
     def show_loading_screen(self):
         """Show loading screen with Llamita icon while initializing"""
         print("🔄 Creating loading screen...")
+        print(f"🔄 Config available: {hasattr(config, 'COLORS')}")
+        print(f"🔄 Root window: {self.root}")
         
         try:
             # Create loading window
@@ -207,6 +209,8 @@ class VoiceAssistant:
             
         except Exception as e:
             print(f"⚠️ Error creating loading screen: {e}")
+            import traceback
+            traceback.print_exc()
             # Continue without loading screen
             self.loading_window = None
             return
@@ -300,7 +304,8 @@ class VoiceAssistant:
             print("🔄 Step 1: Starting initialization...")
             # Step 1: Initialize basic components
             self.update_loading_status("Setting up components...", "⏳")
-            self.root.after(500, self.step_2_initialize_processors)
+            # Ensure minimum loading time of 3 seconds
+            self.root.after(1000, self.step_2_initialize_processors)
         except Exception as e:
             print(f"❌ Error in initialization: {e}")
             self.hide_loading_screen()
@@ -333,7 +338,7 @@ class VoiceAssistant:
             thread.start()
             
             self.update_loading_status("Initializing AI components...", "⏳")
-            self.root.after(800, self.step_3_setup_ui)
+            self.root.after(1000, self.step_3_setup_ui)
         except Exception as e:
             print(f"❌ Error in processor initialization: {e}")
             self.hide_loading_screen()
@@ -346,7 +351,7 @@ class VoiceAssistant:
             # Store reference to chat_text for later use
             self.chat_text = getattr(self, 'chat_text', None)
             self.update_loading_status("Cleaning up processes...", "⏳")
-            self.root.after(500, self.step_4_finalize)
+            self.root.after(1000, self.step_4_finalize)
         except Exception as e:
             print(f"❌ Error in UI setup: {e}")
             self.hide_loading_screen()
@@ -356,7 +361,8 @@ class VoiceAssistant:
         try:
             self.cleanup_previous_processes()
             self.update_loading_status("Ready!", "✅")
-            self.root.after(500, self.hide_loading_screen)
+            # Add a longer delay to make loading screen more visible
+            self.root.after(2000, self.hide_loading_screen)
         except Exception as e:
             print(f"❌ Error in finalization: {e}")
             self.hide_loading_screen()
