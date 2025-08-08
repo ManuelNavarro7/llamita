@@ -3,3 +3,9 @@ SpeechRecognition>=3.14.0
 PyAudio>=0.2.14
 py2app>=0.28.8
 requests>=2.32.0
+
+# Document Processing Dependencies
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+pandas>=2.0.0
+openpyxl>=3.1.0

@@ -14,6 +14,14 @@ import subprocess
 import sys
 import os
 from datetime import datetime
+
+# Import document processor
+try:
+    from document_processor import DocumentProcessor, DocumentUploadDialog
+    DOCUMENT_PROCESSING_AVAILABLE = True
+except ImportError:
+    DOCUMENT_PROCESSING_AVAILABLE = False
+    print("⚠️ Document processing not available - install required dependencies")
 try:
     import config
 except ImportError:
@@ -185,6 +193,14 @@ class VoiceAssistant:
         # Voice input state (text responses only)
         self.voice_input_enabled = False
         
+        # Document processing
+        if DOCUMENT_PROCESSING_AVAILABLE:
+            self.document_processor = DocumentProcessor()
+            print("✅ Document processing initialized")
+        else:
+            self.document_processor = None
+            print("⚠️ Document processing not available")
+        
         print("🖥️ Setting up UI...")
         self.setup_ui()
         print("✅ UI setup complete")
@@ -228,6 +244,16 @@ class VoiceAssistant:
         # Control buttons frame
         control_frame = tk.Frame(main_frame, bg=config.COLORS['background'])
         control_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        # Document upload button (if available)
+        if DOCUMENT_PROCESSING_AVAILABLE:
+            self.upload_button = ttk.Button(
+                control_frame,
+                text="📄 Upload Documents",
+                command=self.open_document_upload,
+                style='Rounded.TButton'
+            )
+            self.upload_button.pack(side=tk.LEFT)
         
         # Clear conversation button
         self.clear_button = ttk.Button(
@@ -299,7 +325,13 @@ class VoiceAssistant:
         self.chat_text.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
         
         # Add welcome message
-        self.add_to_chat("Llamita: Hello! I'm Llamita, your intelligent AI assistant. I'm here to help you with any questions, tasks, or conversations you might have. Simply type your message and I'll respond. How can I assist you today?")
+        welcome_msg = "Llamita: Hello! I'm Llamita, your intelligent AI assistant. I'm here to help you with any questions, tasks, or conversations you might have. Simply type your message and I'll respond."
+        
+        if DOCUMENT_PROCESSING_AVAILABLE:
+            welcome_msg += "\n\n📄 Document Feature: You can upload documents (PDF, DOCX, TXT, CSV, Excel) and I'll use them to answer your questions. Click 'Upload Documents' to get started!"
+        
+        welcome_msg += "\n\nHow can I assist you today?"
+        self.add_to_chat(welcome_msg)
     
     # Voice input methods (disabled for simplified interface - uncomment for future use)
     """
@@ -385,7 +417,7 @@ class VoiceAssistant:
     """
     
     def get_ollama_response_with_context(self, text):
-        """Get response from Ollama with conversation context"""
+        """Get response from Ollama with conversation context and document context"""
         try:
             # Build context from conversation history
             context_prompt = ""
@@ -393,6 +425,13 @@ class VoiceAssistant:
             # Add system prompt
             system_prompt = config.SYSTEM_PROMPTS.get("default", "You are Llamita, a helpful AI assistant.")
             context_prompt += f"{system_prompt}\n\n"
+            
+            # Add document context if available
+            if DOCUMENT_PROCESSING_AVAILABLE and self.document_processor:
+                document_context = self.document_processor.get_document_context(text)
+                if document_context:
+                    context_prompt += f"Relevant document information:\n{document_context}\n\n"
+                    print(f"📄 Added document context for query: {text[:50]}...")
             
             # Add conversation history
             for message in self.conversation_history:
@@ -453,6 +492,16 @@ class VoiceAssistant:
     
 
     
+    def open_document_upload(self):
+        """Open the document upload dialog"""
+        if DOCUMENT_PROCESSING_AVAILABLE and self.document_processor:
+            dialog = DocumentUploadDialog(self.root, self.document_processor)
+        else:
+            messagebox.showwarning(
+                "Document Processing Unavailable",
+                "Document processing is not available. Please install the required dependencies:\n\npip install PyPDF2 python-docx pandas openpyxl"
+            )
+    
     def clear_chat(self):
         """Clear the chat display and conversation history"""
         self.chat_text.delete(1.0, tk.END)
@@ -509,6 +558,10 @@ def main():
         # Add welcome message
         app.add_to_chat("Llamita: 🦙 Hello! I'm Llamita, your local AI assistant.")
         app.add_to_chat("Llamita: 💡 Type a message and press Enter to chat with me.")
+        
+        if DOCUMENT_PROCESSING_AVAILABLE:
+            app.add_to_chat("Llamita: 📄 Upload documents and ask me questions about them!")
+        
         app.add_to_chat("Llamita: Make sure Ollama is running with 'ollama serve' to chat with me!")
         
         # Handle window close
