@@ -205,16 +205,29 @@ class VoiceAssistant:
             
             icon_path = find_icon_path()
             if icon_path:
-                # Resize icon for loading screen (64x64)
-                from PIL import Image, ImageTk
-                img = Image.open(icon_path)
-                img = img.resize((64, 64), Image.Resampling.LANCZOS)
-                icon_photo = ImageTk.PhotoImage(img)
-                print("✅ Loading screen icon loaded")
+                try:
+                    # Try to use PIL for better icon quality
+                    from PIL import Image, ImageTk
+                    img = Image.open(icon_path)
+                    img = img.resize((64, 64), Image.Resampling.LANCZOS)
+                    icon_photo = ImageTk.PhotoImage(img)
+                    print("✅ Loading screen icon loaded with PIL")
+                except ImportError:
+                    # Fallback to basic tkinter PhotoImage
+                    icon_photo = tk.PhotoImage(file=icon_path)
+                    print("✅ Loading screen icon loaded (basic)")
+                except Exception as e:
+                    print(f"⚠️ Error loading icon with PIL: {e}")
+                    # Try basic method as fallback
+                    try:
+                        icon_photo = tk.PhotoImage(file=icon_path)
+                        print("✅ Loading screen icon loaded (fallback)")
+                    except Exception as e2:
+                        print(f"⚠️ Could not load icon: {e2}")
             else:
                 print("⚠️ Could not find icon for loading screen")
         except Exception as e:
-            print(f"⚠️ Error loading icon: {e}")
+            print(f"⚠️ Error in icon loading: {e}")
         
         # Create loading screen content
         main_frame = tk.Frame(self.loading_window, bg=config.COLORS['background'])
