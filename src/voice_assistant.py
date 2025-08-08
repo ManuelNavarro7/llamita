@@ -179,12 +179,21 @@ class VoiceAssistant:
     
     def show_loading_screen(self):
         """Show loading screen with Llamita icon while initializing"""
+        print("🔄 Creating loading screen...")
+        
         # Create loading window
         self.loading_window = tk.Toplevel(self.root)
         self.loading_window.title("🦙 Llamita - Loading...")
         self.loading_window.geometry("400x300")
         self.loading_window.configure(bg=config.COLORS['background'])
         self.loading_window.resizable(False, False)
+        
+        # Make sure the loading window is visible
+        self.loading_window.lift()
+        self.loading_window.attributes('-topmost', True)
+        self.loading_window.focus_force()
+        
+        print("✅ Loading screen window created")
         
         # Center the loading window
         self.loading_window.transient(self.root)
@@ -266,11 +275,13 @@ class VoiceAssistant:
         progress_label.pack()
         
         # Start initialization in background
+        print("🔄 Starting initialization process...")
         self.root.after(100, self.initialize_with_loading)
     
     def initialize_with_loading(self):
         """Initialize components with loading progress updates"""
         try:
+            print("🔄 Step 1: Starting initialization...")
             # Step 1: Initialize basic components
             self.update_loading_status("Setting up components...", "⏳")
             self.root.after(500, self.step_2_initialize_processors)

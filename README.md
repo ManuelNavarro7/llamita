@@ -78,6 +78,12 @@ When you run Llamita for the first time, you'll see a beautiful loading screen w
 
 **If you see dependency warnings:** Don't worry! The app will still work, but document processing features won't be available until you install the optional dependencies.
 
+**If the loading screen doesn't appear:**
+1. Make sure you're running the latest version
+2. Try running directly: `python3 src/voice_assistant.py`
+3. Check the terminal for any error messages
+4. Test loading screen visibility: `python3 scripts/test_loading_visibility.py`
+
 ## 📄 Document Processing
 
 Llamita can now process and answer questions about your documents!
